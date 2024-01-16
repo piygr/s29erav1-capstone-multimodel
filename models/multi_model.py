@@ -176,7 +176,6 @@ class CLIPVisionToPhi(pl.LightningModule):
         self.trainer.save_checkpoint(f"checkpoints/ckpt_{self.current_epoch:02d}.pth")
 
 
-
     def train_dataloader(self):
         if not self.trainer.train_dataloader:
             self.trainer.fit_loop.setup_data()
@@ -185,7 +184,7 @@ class CLIPVisionToPhi(pl.LightningModule):
 
 
     def configure_optimizers(self):
-        optimizer = torch.optim.Adam(self.parameters(), lr=self.cfg['max_lr'], eps=1e-9)
+        optimizer = torch.optim.Adam(self.parameters(), lr=10**-3, eps=1e-9)
         scheduler = torch.optim.lr_scheduler.OneCycleLR(optimizer,
                                                         max_lr=10**-3,
                                                         epochs=self.trainer.max_epochs,
