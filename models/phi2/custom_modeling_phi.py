@@ -12,7 +12,6 @@ from typing import Any, Dict, Optional, Tuple, Union
 
 import torch
 import torch.nn as nn
-from einops import rearrange, repeat
 from transformers import PretrainedConfig, PreTrainedModel
 from transformers.activations import ACT2FN
 from transformers.modeling_outputs import CausalLMOutputWithPast
