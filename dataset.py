@@ -77,3 +77,25 @@ class ImageFeatureToGenTextDataset(Dataset):
             context_token_ids=context_token_ids
         )
 
+
+def get_dataloaders(root_dir, tokenizer):
+    train_ds = ImageFeatureToGenTextDataset(
+        image_indices_file='%s/train2014_ids.json' % root_dir,
+        image_feature_file='%s/train2014_features.npy' % root_dir,
+        caption_file='%s/captions_train2014.json' % root_dir,
+        tokenizer=tokenizer,
+        train=True
+    )
+
+    val_ds = ImageFeatureToGenTextDataset(
+        image_indices_file='%s/val2014_ids.json' % root_dir,
+        image_feature_file='%s/val2014_features.npy' % root_dir,
+        caption_file='%s/captions_val2014.json' % root_dir,
+        tokenizer=tokenizer,
+        train=False
+    )
+
+    train_dataloader = DataLoader(train_ds)
+    val_dataloader = DataLoader(val_ds)
+
+    return train_dataloader, val_dataloader
