@@ -1,6 +1,6 @@
 from torch import optim
 
-from config import VisionProjectorConfig, CLIPVisionToPhiConfig, CustomPhiConfig
+from config import VisionProjectorConfig, CLIPVisionToPhiConfig, CustomPhiConfig, extra
 from transformers import AutoTokenizer
 
 from models.multi_model import CLIPVisionToPhi
@@ -27,17 +27,17 @@ tokenizer.add_special_tokens(dict(
 
 
 train_ds = ImageFeatureToGenTextDataset(
-    image_indices_file='data/train2014_ids.json',
-    image_feature_file='data/train2014_features.npy',
-    caption_file='data/captions_train2014.json',
+    image_indices_file='%s/train2014_ids.json' % extra['data_dir'],
+    image_feature_file='%s/train2014_features.npy' % extra['data_dir'],
+    caption_file='%s/captions_train2014.json' % extra['data_dir'],
     tokenizer=tokenizer,
     train=True
 )
 
 val_ds = ImageFeatureToGenTextDataset(
-    image_indices_file='data/val2014_ids.json',
-    image_feature_file='data/val2014_features.npy',
-    caption_file='data/captions_val2014.json',
+    image_indices_file='%s/val2014_ids.json' % extra['data_dir'],
+    image_feature_file='%s/val2014_features.npy' % extra['data_dir'],
+    caption_file='%s/captions_val2014.json' % extra['data_dir'],
     tokenizer=tokenizer,
     train=False
 )

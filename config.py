@@ -106,3 +106,9 @@ phi_config_obj = CustomPhiConfig(
 )
 
 '''
+
+extra = dict(
+    num_epochs=10,
+    resume=False,
+    data_dir='data'
+)
