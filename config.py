@@ -80,7 +80,7 @@ class CLIPVisionToPhiConfig(PretrainedConfig):
                  **kwargs
                  ):
 
-        super().__init__(**kwargs)
+        #super().__init__(**kwargs)
 
         self.vision_projector_config = vision_projector_config
         self.phi_config = phi_config
