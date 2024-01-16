@@ -60,7 +60,7 @@ model_config = CLIPVisionToPhiConfig(
 )
 
 model = CLIPVisionToPhi(model_config)
-model.resize_token_embeddings( len(tokenizer) )
+model.phi_model.resize_token_embeddings( len(tokenizer) )
 
 #model = model.to(device)
 
