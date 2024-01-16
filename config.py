@@ -12,7 +12,7 @@ class VisionProjectorConfig(PretrainedConfig):
             output_dim=2560,
             **kwargs
     ):
-        super.__init__(**kwargs)
+        #super.__init__(**kwargs)
         self.input_dim = input_dim
         self.hidden_dim = hidden_dim
         self.output_dim = output_dim
