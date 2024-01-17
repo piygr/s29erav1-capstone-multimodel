@@ -912,13 +912,19 @@ class PhiModel(PhiPreTrainedModel):
 
         hidden_states = self.embd(input_ids)
         if kwargs.get('context_embedding'):
-            context_ids = kwargs.get('context_ids')
+            '''context_ids = kwargs.get('context_ids')
             hidden_states = torch.cat(
                 [self.embd(context_ids[:, :1]), kwargs.get('context_embedding'), self.embd(context_ids[:, 1:2]), hidden_states],
                 dim=1
             )
+            '''
+            hidden_states = torch.cat(
+                [kwargs.get('context_embedding'),
+                 hidden_states],
+                dim=1
+            )
 
-            ctx_embed_size = kwargs.get('context_embedding').size(1) + 2
+            ctx_embed_size = kwargs.get('context_embedding').size(1)
             attention_mask = torch.cat(
                 [
                     torch.ones( (attention_mask.size(0), ctx_embed_size), dtype=torch.int),

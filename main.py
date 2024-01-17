@@ -12,6 +12,8 @@ import torch
 from dataset import ImageFeatureToGenTextDataset
 
 tokenizer = AutoTokenizer.from_pretrained('microsoft/phi-2')
+
+'''
 tokenizer.add_special_tokens({
     'bos_token': '<|s|>',
     'eos_token': '<|e|>'
@@ -21,10 +23,11 @@ tokenizer.add_bos_token = True
 tokenizer.add_eos_token = True
 tokenizer.pad_token = tokenizer.eos_token
 
+
 tokenizer.add_special_tokens(dict(
     additional_special_tokens=['<|context|>', '|<!context>|']
 ))
-
+'''
 
 
 

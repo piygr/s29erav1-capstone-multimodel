@@ -66,7 +66,7 @@ class ImageFeatureToGenTextDataset(Dataset):
 
         mask = (decoder_input != self.tokenizer.pad_token_id).int()
 
-        context_token_ids = self.tokenizer.encode("<|context|><|!context|>")
+        #context_token_ids = self.tokenizer.encode("<|context|><|!context|>")
 
         return dict(
             image_feature=image_feature,
@@ -74,7 +74,7 @@ class ImageFeatureToGenTextDataset(Dataset):
             decoder_caption=decoder_input,
             mask=mask,
             label=label,
-            context_token_ids=context_token_ids
+            #context_token_ids=context_token_ids
         )
 
 

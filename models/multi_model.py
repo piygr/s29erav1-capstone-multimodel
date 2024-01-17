@@ -44,7 +44,6 @@ class CLIPVisionToPhi(pl.LightningModule):
                 image_feature,
                 caption_ids,
                 label=None,
-                context_ids=None,
                 mask=None
                 ):
 
@@ -53,11 +52,10 @@ class CLIPVisionToPhi(pl.LightningModule):
         x = self.phi_model(
             caption_ids,
             context_embedding=context_embeds,
-            context_ids=context_ids,
             attention_mask=mask
         )
 
-        context_embedding_size = context_embeds.size(1) + context_ids.size(1)
+        context_embedding_size = context_embeds.size(1)
         logits = x['logits'][:, :context_embedding_size]
 
 
@@ -77,7 +75,6 @@ class CLIPVisionToPhi(pl.LightningModule):
         # print('--TRAIN STEP--')
 
         image_feature = train_batch['image_feature']
-        context_ids = train_batch['context_ids']
         caption_ids = train_batch['decoder_caption']
         decoder_mask = train_batch['mask']
 
@@ -86,7 +83,6 @@ class CLIPVisionToPhi(pl.LightningModule):
         output = self.forward(
             image_feature=image_feature,
             caption_ids=caption_ids,
-            context_ids=context_ids,
             label=label,
             mask=decoder_mask
 
@@ -174,6 +170,7 @@ class CLIPVisionToPhi(pl.LightningModule):
 
         print('--------------------')
         self.trainer.save_checkpoint(f"checkpoints/ckpt_{self.current_epoch:02d}.pth")
+        #self.vision_projector
 
 
     def train_dataloader(self):
