@@ -4,12 +4,12 @@ from config import VisionProjectorConfig, CLIPVisionToPhiConfig, CustomPhiConfig
 from transformers import AutoTokenizer
 
 from models.multi_model import CLIPVisionToPhi
-from models.vision_projector_model import VisionProjector
-from torch.utils.data import DataLoader
-
+from config import extra
+from dataset import get_dataloaders
+from models.multi_model import CLIPVisionToPhi
 
 import torch
-from dataset import ImageFeatureToGenTextDataset
+
 
 tokenizer = AutoTokenizer.from_pretrained('microsoft/phi-2')
 
@@ -62,9 +62,75 @@ model_config = CLIPVisionToPhiConfig(
     )
 )
 
-#model = CLIPVisionToPhi(model_config)
-#model.phi_model.resize_token_embeddings( len(tokenizer) )
-
-#model = model.to(device)
 
 
+import torch.optim as optim
+import torch
+
+model = CLIPVisionToPhi(model_config)
+
+print("torch.cuda.memory_allocated: %fGB"%(torch.cuda.memory_allocated(0)/1024/1024/1024))
+print("torch.cuda.memory_reserved: %fGB"%(torch.cuda.memory_reserved(0)/1024/1024/1024))
+print("torch.cuda.max_memory_reserved: %fGB"%(torch.cuda.max_memory_reserved(0)/1024/1024/1024))
+
+model = model.to(device)
+model.train()
+
+'''for param in model.phi_model.parameters():
+    if param.requires_grad:
+        print(True)
+        break'''
+
+#optimizer = optim.Adam(model.parameters(), lr=0.001)
+optimizer = optim.Adam(filter(lambda p: p.requires_grad, model.parameters()), lr=0.001)
+total_epochs = 15
+
+epoch_loss = []
+
+train_dl, val_dl = get_dataloaders("data", tokenizer)
+
+print('---->>>>> Training logs <<<<<-----')
+for epoch in range(total_epochs):
+    data_iter = iter(train_dl)
+    train_batch = next(data_iter)
+    while train_batch:
+        optimizer.zero_grad()
+        image_feature = train_batch['image_feature']
+        caption_ids = train_batch['decoder_caption']
+        decoder_mask = train_batch['mask']
+
+        label = train_batch['label']
+
+        with torch.autocast(device_type=device, dtype=torch.bfloat16):
+            output = model(
+                image_feature=image_feature.to(device),
+                caption_ids=caption_ids.to(device),
+                label=label.to(device),
+                mask=decoder_mask.to(device)
+            )
+
+            loss = output['loss']
+            loss.backward()
+
+        epoch_loss.append(loss.item())
+
+        optimizer.step()
+        train_batch = next(data_iter)
+
+    b = torch.tensor(epoch_loss, dtype=torch.float16)
+    print('Epoch:', '%04d' % (epoch + 1), 'loss =', '{:.6f}'.format(b.mean()))
+    epoch_loss = []
+
+    torch.save({
+        'epoch': epoch,
+        'model_state_dict': model.state_dict(),
+        'optimizer_state_dict': optimizer.state_dict(),
+        'loss': b.mean(),
+    }, 'checkpoints/ckpt_%s.pth' % epoch)
+
+    torch.save({
+        'epoch': epoch,
+        'model_state_dict': model.vision_projector.state_dict(),
+        'optimizer_state_dict': optimizer.state_dict(),
+        'loss': b.mean(),
+    }, 'checkpoints/vp_ckpt_%s.pth' % epoch)
