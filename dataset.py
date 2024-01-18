@@ -95,7 +95,7 @@ def get_dataloaders(root_dir, tokenizer):
         train=False
     )
 
-    train_dataloader = DataLoader(train_ds)
-    val_dataloader = DataLoader(val_ds)
+    train_dataloader = DataLoader(train_ds, shuffle=True, batch_size=1)
+    val_dataloader = DataLoader(train_ds, shuffle=True, batch_size=1)
 
     return train_dataloader, val_dataloader
