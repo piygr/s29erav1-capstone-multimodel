@@ -4,6 +4,7 @@ import torch.nn as nn
 from config import CLIPVisionToPhiConfig
 from models.phi2.custom_modeling_phi import PhiForCausalLM
 from models.vision_projector_model import VisionProjector
+from transformers import AutoModelForCausalLM
 
 #import pytorch_lightning as pl
 
@@ -19,7 +20,7 @@ class CLIPVisionToPhi(nn.Module):
         super().__init__()
         self.config = config
         self.vision_projector = VisionProjector(self.config.vision_projector_config)
-        self.phi_model = PhiForCausalLM(self.config.phi_config)
+        self.phi_model = AutoModelForCausalLM.from_pretrained('phi2', local_files_only=True) #PhiForCausalLM(self.config.phi_config)
 
         for param in self.phi_model.parameters():
             param.requires_grad = False
