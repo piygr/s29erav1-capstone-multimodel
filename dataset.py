@@ -50,21 +50,24 @@ class ImageFeatureToGenTextDataset(Dataset):
 
         decoder_input = torch.cat(
             [
-                torch.tensor([self.tokenizer.bos_token_id], dtype=torch.int64),
-                torch.tensor(token_ids, dtype=torch.int64)
+                torch.tensor([self.tokenizer.bos_token_id], dtype=torch.int32),
+                torch.tensor(token_ids, dtype=torch.int32)
             ],
             dim=0
         )
 
         label = torch.cat(
             [
-                torch.tensor(token_ids, dtype=torch.int64),
-                torch.tensor([self.tokenizer.eos_token_id], dtype=torch.int64)
+                torch.tensor(token_ids, dtype=torch.int32),
+                torch.tensor([self.tokenizer.eos_token_id], dtype=torch.int32)
             ],
             dim=0
         )
 
-        mask = (decoder_input != self.tokenizer.pad_token_id).int()
+        if self.tokenizer.pad_token_id is None:
+            mask = torch.tensor(torch.ones(decoder_input.size(-1)), dtype=torch.int32)
+        else:
+            mask = (decoder_input != self.tokenizer.pad_token_id).int()
 
         #context_token_ids = self.tokenizer.encode("<|context|><|!context|>")
 
