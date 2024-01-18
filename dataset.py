@@ -65,7 +65,7 @@ class ImageFeatureToGenTextDataset(Dataset):
         )
 
         if self.tokenizer.pad_token_id is None:
-            mask = torch.tensor(torch.ones(decoder_input.size(-1)), dtype=torch.int32)
+            mask = torch.ones(decoder_input.size(-1), dtype=torch.int32)
         else:
             mask = (decoder_input != self.tokenizer.pad_token_id).int()
 
