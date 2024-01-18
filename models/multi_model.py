@@ -5,9 +5,9 @@ from config import CLIPVisionToPhiConfig
 from models.phi2.custom_modeling_phi import PhiForCausalLM
 from models.vision_projector_model import VisionProjector
 
-import pytorch_lightning as pl
+#import pytorch_lightning as pl
 
-class CLIPVisionToPhi(pl.LightningModule):
+class CLIPVisionToPhi(nn.Module):
 
     '''
     input_dim := output dim of clip image emvbedding
@@ -71,7 +71,7 @@ class CLIPVisionToPhi(pl.LightningModule):
         return logits
 
 
-    def training_step(self, train_batch, batch_idx):
+    '''def training_step(self, train_batch, batch_idx):
         # print('--TRAIN STEP--')
 
         image_feature = train_batch['image_feature']
@@ -94,28 +94,10 @@ class CLIPVisionToPhi(pl.LightningModule):
         self.metric['epoch_train_loss'].append(output['loss'].item())
 
         return output['loss']
+        '''
 
-
+'''
     def validation_step(self, val_batch, batch_idx):
-        # print('--VAL STEP--')
-        '''encoder_input = val_batch['encoder_input']
-        decoder_input = val_batch['decoder_input']
-        encoder_mask = val_batch['encoder_mask']
-        decoder_mask = val_batch['decoder_mask']
-
-        encoder_output = self.encode(encoder_input, encoder_mask)
-        decoder_output = self.decode(decoder_input, encoder_output, encoder_mask, decoder_mask)
-        proj_output = self.forward(decoder_output)
-
-        label = val_batch['label']
-
-        loss = self.loss_fn(proj_output.view(-1, self.tokenizer_tgt.get_vocab_size()), label.view(-1))
-        self.log_dict({'val_loss': loss.item()})
-
-        self.metric['total_val_steps'] += 1
-        self.metric['epoch_val_steps'] += 1
-        self.metric['epoch_val_loss'].append(loss.item())'''
-
         pass
 
 
@@ -131,42 +113,10 @@ class CLIPVisionToPhi(pl.LightningModule):
 
         self.metric['epoch_train_steps'] = 0
         self.metric['epoch_train_loss'] = []
-
-
+'''
+'''
     # def on_train_epoch_end(self):
     def on_validation_epoch_end(self):
-
-        '''
-        if self.metric['epoch_train_steps'] > 0:
-            print('Epoch ', self.current_epoch)
-
-            epoch_loss = 0
-            for i in range(self.metric['epoch_train_steps']):
-                epoch_loss += self.metric['epoch_train_loss'][i]
-
-            epoch_loss = epoch_loss / self.metric['epoch_train_steps']
-            print(f"Train Loss: {epoch_loss:5f}")
-            self.metric['train_loss'].append(epoch_loss)
-
-            self.metric['epoch_train_steps'] = 0
-            self.metric['epoch_train_loss'] = []
-        '''
-
-        '''    
-            epoch_loss = 0
-            for i in range(self.metric['epoch_val_steps']):
-                epoch_loss += self.metric['epoch_val_loss'][i]
-
-            epoch_loss = epoch_loss / self.metric['epoch_val_steps']
-            print(f"Validation Loss: {epoch_loss:5f}")
-            self.metric['val_loss'].append(epoch_loss)
-
-            self.metric['epoch_val_steps'] = 0
-            self.metric['epoch_val_loss'] = []
-        '''
-            #print('------')
-
-            #run_validation(self, self.last_val_batch, self.tokenizer_src, self.tokenizer_tgt, self.cfg['seq_len'])
 
         print('--------------------')
         self.trainer.save_checkpoint(f"checkpoints/ckpt_{self.current_epoch:02d}.pth")
@@ -201,3 +151,5 @@ class CLIPVisionToPhi(pl.LightningModule):
                 'frequency': 1
             },
         }
+
+'''
