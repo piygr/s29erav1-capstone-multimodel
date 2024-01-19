@@ -69,6 +69,10 @@ import torch
 
 model = CLIPVisionToPhi(model_config)
 
+import gc
+gc.collect()
+torch.cuda.empty_cache()
+
 print("torch.cuda.memory_allocated: %fGB"%(torch.cuda.memory_allocated(0)/1024/1024/1024))
 print("torch.cuda.memory_reserved: %fGB"%(torch.cuda.memory_reserved(0)/1024/1024/1024))
 print("torch.cuda.max_memory_reserved: %fGB"%(torch.cuda.max_memory_reserved(0)/1024/1024/1024))
@@ -89,6 +93,7 @@ epoch_loss = []
 
 train_dl, val_dl = get_dataloaders("data", tokenizer)
 
+step_count = -1
 print('---->>>>> Training logs <<<<<-----')
 for epoch in range(total_epochs):
     data_iter = iter(train_dl)
@@ -113,6 +118,14 @@ for epoch in range(total_epochs):
             loss.backward()
 
         epoch_loss.append(loss.item())
+
+        if step_count == -1:
+            print('Epoch:', '%04d' % (epoch + 1), 'loss =', '{:.6f}'.format(loss.item()))
+
+        elif step_count % 1000 == 0:
+            print('\t\t', '-- %s step loss ='%step_count, '{:.6f}'.format(loss.item()))
+
+        step_count += 1
 
         optimizer.step()
         train_batch = next(data_iter)
