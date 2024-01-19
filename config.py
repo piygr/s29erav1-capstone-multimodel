@@ -113,5 +113,6 @@ extra = dict(
     resume=False,
     data_dir='../data',
     phi_path="../drive/MyDrive/Capstone/s29erav1-capstone-multimodel/phi2",
-    checkpoint_dir='../drive/MyDrive/Capstone/checkpoints'
+    checkpoint_dir='../drive/MyDrive/Capstone/checkpoints',
+    max_seqlen=80
 )

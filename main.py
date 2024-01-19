@@ -116,12 +116,12 @@ for epoch in range(total_epochs):
 
             label = label.type(torch.LongTensor).to(device)
 
-            output = model.loss(
+            loss = model.loss(
                 logits,
                 label
             )
 
-            loss = output['loss']
+            #loss = output['loss']
             loss.backward()
 
         epoch_loss.append(loss.item())

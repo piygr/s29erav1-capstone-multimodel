@@ -5,6 +5,8 @@ import numpy as np
 import torch
 from transformers import AutoTokenizer
 
+from config import extra
+
 
 class ImageFeatureToGenTextDataset(Dataset):
     def __init__(self,
@@ -47,6 +49,8 @@ class ImageFeatureToGenTextDataset(Dataset):
         image_feature = torch.from_numpy( self.image_feature[image_index] ).squeeze(0)
 
         token_ids = self.tokenizer.encode( caption_dict.get('caption') )
+
+        token_ids = token_ids[:extra['max_seqlen']]
 
         decoder_input = torch.cat(
             [
