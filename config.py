@@ -7,8 +7,8 @@ class VisionProjectorConfig(PretrainedConfig):
     def __init__(
             self,
             input_dim=768,
-            hidden_dim=500,
-            num_tokens=50,
+            hidden_dim=256,
+            num_tokens=20,
             output_dim=2560,
             **kwargs
     ):
@@ -114,5 +114,5 @@ extra = dict(
     data_dir='../data',
     phi_path="../drive/MyDrive/Capstone/s29erav1-capstone-multimodel/phi2",
     checkpoint_dir='../drive/MyDrive/Capstone/checkpoints',
-    max_seqlen=80
+    max_seqlen=50
 )
