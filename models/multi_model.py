@@ -24,7 +24,7 @@ class CLIPVisionToPhi(nn.Module):
         self.config = config
         self.vision_projector = VisionProjector(self.config.vision_projector_config)
         #self.phi_model = AutoModelForCausalLM.from_pretrained(extra['phi_path'], local_files_only=True, torch_dtype=torch.float16) #PhiForCausalLM(self.config.phi_config)
-        self.phi_model = AutoModelForCausalLM.from_pretrained('microsoft/phi-2', trust_remote_code=True, torch_dtype=torch.float16)
+        self.phi_model = AutoModelForCausalLM.from_pretrained('microsoft/phi-2', trust_remote_code=True)
         self.text_embedding = self.phi_model.get_input_embeddings()
         self.tokenizer = self.config.tokenizer
 
