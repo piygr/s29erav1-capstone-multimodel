@@ -88,11 +88,11 @@ model.train()
 
 #optimizer = optim.Adam(model.parameters(), lr=0.001)
 optimizer = optim.Adam(filter(lambda p: p.requires_grad, model.parameters()), lr=0.001)
-total_epochs = 15
+total_epochs = extra['num_epochs']
 
 epoch_loss = []
 
-train_dl, val_dl = get_dataloaders("data", tokenizer)
+train_dl, val_dl = get_dataloaders(extra['data_dir'], tokenizer)
 
 step_count = -1
 print('---->>>>> Training logs <<<<<-----')
@@ -131,12 +131,13 @@ for epoch in range(total_epochs):
 
         elif step_count % 1000 == 0:
             print('\t\t', '-- %s step loss ='%step_count, '{:.6f}'.format(loss.item()))
-
+            a = torch.tensor(epoch_loss, dtype=torch.float16)
             torch.save({
                 'epoch': epoch,
                 'model_state_dict': model.vision_projector.state_dict(),
                 'optimizer_state_dict': optimizer.state_dict(),
-                'loss': epoch_loss.mean(),
+                'loss': a.mean(),
+                step_count: step_count,
             }, '%s/vp_ckpt_%s.pth' % (extra['checkpoint_dir'], epoch))
 
         step_count += 1
