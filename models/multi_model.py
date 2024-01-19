@@ -7,6 +7,8 @@ from models.vision_projector_model import VisionProjector
 from transformers import AutoModelForCausalLM
 from config import extra
 
+device = 'cuda' if torch.cuda.is_available() else 'cpu'
+
 #import pytorch_lightning as pl
 
 class CLIPVisionToPhi(nn.Module):
@@ -59,7 +61,7 @@ class CLIPVisionToPhi(nn.Module):
             [context_embeds,
              text_embd],
             dim=1
-        )
+        ).to(device)
 
 
         ctx_embed_size = context_embeds.size(1)
@@ -70,7 +72,7 @@ class CLIPVisionToPhi(nn.Module):
                 mask
             ],
             dim=1
-        )
+        ).to(device)
 
         x = self.phi_model(
             inputs_embeds=embeds,
