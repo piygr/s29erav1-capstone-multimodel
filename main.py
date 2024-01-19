@@ -59,7 +59,8 @@ model_config = CLIPVisionToPhiConfig(
     vision_projector_config=VisionProjectorConfig(),
     phi_config=CustomPhiConfig(
         vocab_size=len(tokenizer)
-    )
+    ),
+    tokenizer=tokenizer
 )
 
 
@@ -139,11 +140,11 @@ for epoch in range(total_epochs):
         'model_state_dict': model.state_dict(),
         'optimizer_state_dict': optimizer.state_dict(),
         'loss': b.mean(),
-    }, 'checkpoints/ckpt_%s.pth' % epoch)
+    }, '%s/ckpt_%s.pth' % (extra['checkpoint_dir'],epoch) )
 
     torch.save({
         'epoch': epoch,
         'model_state_dict': model.vision_projector.state_dict(),
         'optimizer_state_dict': optimizer.state_dict(),
         'loss': b.mean(),
-    }, 'checkpoints/vp_ckpt_%s.pth' % epoch)
+    }, '%s/vp_ckpt_%s.pth' % (extra['checkpoint_dir'],epoch) )

@@ -21,7 +21,10 @@ class CLIPVisionToPhi(nn.Module):
         super().__init__()
         self.config = config
         self.vision_projector = VisionProjector(self.config.vision_projector_config)
-        self.phi_model = AutoModelForCausalLM.from_pretrained(extra['phi_path'], local_files_only=True, torch_dtype=torch.float16) #PhiForCausalLM(self.config.phi_config)
+        #self.phi_model = AutoModelForCausalLM.from_pretrained(extra['phi_path'], local_files_only=True, torch_dtype=torch.float16) #PhiForCausalLM(self.config.phi_config)
+        self.phi_model = AutoModelForCausalLM.from_pretrained('microsoft/phi-2', trust_remote_code=True, torch_dtype=torch.float16)
+        self.text_embedding = self.phi_model.get_input_embeddings()
+        self.tokenizer = self.config.tokenizer
 
         for param in self.phi_model.parameters():
             param.requires_grad = False
@@ -41,7 +44,53 @@ class CLIPVisionToPhi(nn.Module):
             val_acc=[]
         )
 
+    def forward(self,
+                image_feature,
+                caption_ids,
+                label=None,
+                mask=None
+                ):
 
+        context_embeds = self.vision_projector(image_feature)
+
+        text_embd = self.text_embedding(caption_ids)
+
+        embeds = torch.cat(
+            [context_embeds,
+             text_embd],
+            dim=1
+        )
+
+
+        ctx_embed_size = context_embeds.size(1)
+
+        attention_mask = torch.cat(
+            [
+                torch.ones((mask.size(0), ctx_embed_size), dtype=torch.int),
+                mask
+            ],
+            dim=1
+        )
+
+        x = self.phi_model(
+            inputs_embeds=embeds,
+            attention_mask=attention_mask
+        )
+
+
+        logits = x['logits'][:, :ctx_embed_size]
+
+        if label:
+            loss = self.phi_model.loss(
+                logits,
+                label
+            )
+
+            return dict(logits=logits, loss=loss)
+
+        return logits
+
+    '''
     def forward(self,
                 image_feature,
                 caption_ids,
@@ -71,6 +120,8 @@ class CLIPVisionToPhi(nn.Module):
             return dict(logits=logits, loss=loss)
 
         return logits
+        
+    '''
 
 
     '''def training_step(self, train_batch, batch_idx):

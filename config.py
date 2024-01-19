@@ -84,6 +84,7 @@ class CLIPVisionToPhiConfig(PretrainedConfig):
 
         self.vision_projector_config = vision_projector_config
         self.phi_config = phi_config
+        self.tokenizer = kwargs.get('tokenizer')
 
 
 '''
@@ -111,5 +112,6 @@ extra = dict(
     num_epochs=10,
     resume=False,
     data_dir='data',
-    phi_path="drive/MyDrive/Capstone/s29erav1-capstone-multimodel/phi2"
+    phi_path="../drive/MyDrive/Capstone/s29erav1-capstone-multimodel/phi2",
+    checkpoint_dir='../drive/MyDrive/Capstone/checkpoints'
 )
