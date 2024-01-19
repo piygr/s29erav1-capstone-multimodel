@@ -111,7 +111,7 @@ phi_config_obj = CustomPhiConfig(
 extra = dict(
     num_epochs=10,
     resume=False,
-    data_dir='data',
+    data_dir='../data',
     phi_path="../drive/MyDrive/Capstone/s29erav1-capstone-multimodel/phi2",
     checkpoint_dir='../drive/MyDrive/Capstone/checkpoints'
 )
