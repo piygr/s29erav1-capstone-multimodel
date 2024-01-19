@@ -68,7 +68,7 @@ class CLIPVisionToPhi(nn.Module):
 
         attention_mask = torch.cat(
             [
-                torch.ones((mask.size(0), ctx_embed_size), dtype=torch.int),
+                torch.ones((mask.size(0), ctx_embed_size), dtype=torch.int).to(device),
                 mask
             ],
             dim=1
