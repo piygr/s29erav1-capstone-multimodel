@@ -7,7 +7,7 @@
   "attn_pdrop": 0.0,
   "auto_map": {
     "AutoConfig": "configuration_phi.PhiConfig",
-    "AutoModelForCausalLM": "modeling_phi.PhiForCausalLM"
+    "AutoModelForCausalLM": "custom_modeling_phi.PhiForCausalLM"
   },
   "embd_pdrop": 0.0,
   "flash_attn": false,
