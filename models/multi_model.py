@@ -82,7 +82,7 @@ class CLIPVisionToPhi(nn.Module):
 
         logits = x['logits'][:, :ctx_embed_size]
 
-        if label:
+        if label is not None:
             loss = self.phi_model.loss(
                 logits,
                 label
