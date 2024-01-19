@@ -108,11 +108,17 @@ for epoch in range(total_epochs):
         label = train_batch['label']
 
         with torch.autocast(device_type=device, dtype=torch.bfloat16):
-            output = model(
+            logits = model(
                 image_feature=image_feature.to(device),
                 caption_ids=caption_ids.to(device),
-                label=label.to(device),
                 mask=decoder_mask.to(device)
+            )
+
+            label = label.type(torch.LongTensor).to(device)
+
+            output = model.loss(
+                logits,
+                label
             )
 
             loss = output['loss']
@@ -126,25 +132,32 @@ for epoch in range(total_epochs):
         elif step_count % 1000 == 0:
             print('\t\t', '-- %s step loss ='%step_count, '{:.6f}'.format(loss.item()))
 
+            torch.save({
+                'epoch': epoch,
+                'model_state_dict': model.vision_projector.state_dict(),
+                'optimizer_state_dict': optimizer.state_dict(),
+                'loss': epoch_loss.mean(),
+            }, '%s/vp_ckpt_%s.pth' % (extra['checkpoint_dir'], epoch))
+
         step_count += 1
 
         optimizer.step()
         train_batch = next(data_iter)
 
+        import gc
+        gc.collect()
+        torch.cuda.empty_cache()
+
+
     b = torch.tensor(epoch_loss, dtype=torch.float16)
     print('Epoch:', '%04d' % (epoch + 1), 'loss =', '{:.6f}'.format(b.mean()))
     epoch_loss = []
 
-    torch.save({
+    '''torch.save({
         'epoch': epoch,
         'model_state_dict': model.state_dict(),
         'optimizer_state_dict': optimizer.state_dict(),
         'loss': b.mean(),
     }, '%s/ckpt_%s.pth' % (extra['checkpoint_dir'],epoch) )
+    '''
 
-    torch.save({
-        'epoch': epoch,
-        'model_state_dict': model.vision_projector.state_dict(),
-        'optimizer_state_dict': optimizer.state_dict(),
-        'loss': b.mean(),
-    }, '%s/vp_ckpt_%s.pth' % (extra['checkpoint_dir'],epoch) )
