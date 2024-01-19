@@ -12,6 +12,7 @@ import torch
 
 
 tokenizer = AutoTokenizer.from_pretrained('microsoft/phi-2')
+tokenizer.bos_token = tokenizer.eos_token
 
 '''
 tokenizer.add_special_tokens({
