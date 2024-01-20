@@ -21,10 +21,16 @@ class VisionProjector(nn.Module):
 
         self.pre_norm = nn.LayerNorm(self.input_dim)
 
+        '''
         self.proj = nn.Sequential(
             nn.Linear(self.input_dim, self.num_tokens*self.hidden_dim),
             nn.GELU(),
             nn.Linear(self.num_tokens*self.hidden_dim, self.num_tokens*self.output_dim)
+        )
+        '''
+        self.proj = nn.Sequential(
+            nn.GELU(),
+            nn.Linear(self.input_dim, self.num_tokens * self.output_dim)
         )
 
     def forward(self, x):

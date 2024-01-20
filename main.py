@@ -12,7 +12,7 @@ import torch
 
 
 tokenizer = AutoTokenizer.from_pretrained('microsoft/phi-2')
-tokenizer.bos_token = tokenizer.eos_token
+#tokenizer.bos_token = tokenizer.eos_token
 
 '''
 tokenizer.add_special_tokens({
@@ -93,14 +93,14 @@ total_epochs = extra['num_epochs']
 
 epoch_loss = []
 
-train_dl, val_dl = get_dataloaders(extra['data_dir'], tokenizer)
+train_dl  = get_dataloaders(extra['data_dir'], tokenizer, train_only=True)
 
 step_count = -1
 print('---->>>>> Training logs <<<<<-----')
 for epoch in range(total_epochs):
-    data_iter = iter(train_dl)
-    train_batch = next(data_iter)
-    while train_batch:
+    #data_iter = iter(train_dl)
+    #train_batch = next(data_iter)
+    for batch_idx, train_batch in enumerate(train_dl):
         optimizer.zero_grad()
         image_feature = train_batch['image_feature']
         caption_ids = train_batch['decoder_caption']
@@ -144,7 +144,6 @@ for epoch in range(total_epochs):
         step_count += 1
 
         optimizer.step()
-        train_batch = next(data_iter)
 
         import gc
         gc.collect()

@@ -52,9 +52,10 @@ class ImageFeatureToGenTextDataset(Dataset):
 
         token_ids = token_ids[:extra['max_seqlen']]
 
+        context_token_ids = self.tokenizer.encode("<context/>")
         decoder_input = torch.cat(
             [
-                torch.tensor([self.tokenizer.bos_token_id], dtype=torch.int32),
+                torch.tensor(context_token_ids, dtype=torch.int32),
                 torch.tensor(token_ids, dtype=torch.int32)
             ],
             dim=0
@@ -73,19 +74,16 @@ class ImageFeatureToGenTextDataset(Dataset):
         else:
             mask = (decoder_input != self.tokenizer.pad_token_id).int()
 
-        #context_token_ids = self.tokenizer.encode("<|context|><|!context|>")
-
         return dict(
             image_feature=image_feature,
             caption=caption_dict.get('caption'),
             decoder_caption=decoder_input,
             mask=mask,
-            label=label,
-            #context_token_ids=context_token_ids
+            label=label
         )
 
 
-def get_dataloaders(root_dir, tokenizer):
+def get_dataloaders(root_dir, tokenizer, train_only=False):
     train_ds = ImageFeatureToGenTextDataset(
         image_indices_file='%s/train2014_ids.json' % root_dir,
         image_feature_file='%s/train2014_features.npy' % root_dir,
@@ -93,6 +91,11 @@ def get_dataloaders(root_dir, tokenizer):
         tokenizer=tokenizer,
         train=True
     )
+
+    train_dataloader = DataLoader(train_ds, shuffle=True, batch_size=extra['batch_size'])
+
+    if train_only:
+        return train_dataloader
 
     val_ds = ImageFeatureToGenTextDataset(
         image_indices_file='%s/val2014_ids.json' % root_dir,
@@ -102,7 +105,6 @@ def get_dataloaders(root_dir, tokenizer):
         train=False
     )
 
-    train_dataloader = DataLoader(train_ds, shuffle=True, batch_size=1)
-    val_dataloader = DataLoader(train_ds, shuffle=True, batch_size=1)
+    val_dataloader = DataLoader(val_ds, shuffle=True, batch_size=extra['batch_size'])
 
     return train_dataloader, val_dataloader
