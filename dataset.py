@@ -53,18 +53,22 @@ class ImageFeatureToGenTextDataset(Dataset):
         token_ids = token_ids[:extra['max_seqlen']]
 
         context_token_ids = self.tokenizer.encode("<context/>")
+        padding_token_count = extra.get('max_seqlen') - len(token_ids) - len(context_token_ids)
         decoder_input = torch.cat(
             [
                 torch.tensor(context_token_ids, dtype=torch.int32),
-                torch.tensor(token_ids, dtype=torch.int32)
+                torch.tensor(token_ids, dtype=torch.int32),
+                torch.tensor([self.tokenizer.pad_token_id] * padding_token_count, dtype=torch.int32)
             ],
             dim=0
         )
 
+        padding_token_count += len(context_token_ids) - 1
         label = torch.cat(
             [
                 torch.tensor(token_ids, dtype=torch.int32),
-                torch.tensor([self.tokenizer.eos_token_id], dtype=torch.int32)
+                torch.tensor([self.tokenizer.eos_token_id], dtype=torch.int32),
+                torch.tensor([self.tokenizer.pad_token_id] * padding_token_count, dtype=torch.int32)
             ],
             dim=0
         )
