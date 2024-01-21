@@ -74,7 +74,7 @@ optimizer = optim.Adam(filter(lambda p: p.requires_grad, model.parameters()), lr
 epoch = 0
 if extra['resume']:
     checkpoint = torch.load(extra['checkpoint_dir'] + '/' + 'vp_ckpt_0.pth')
-    model.load_state_dict(checkpoint['model_state_dict'])
+    model.vision_projector.load_state_dict(checkpoint['model_state_dict'])
     optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
     epoch = checkpoint['epoch']
 
@@ -87,7 +87,7 @@ print("torch.cuda.memory_reserved: %fGB"%(torch.cuda.memory_reserved(0)/1024/102
 print("torch.cuda.max_memory_reserved: %fGB"%(torch.cuda.max_memory_reserved(0)/1024/1024/1024))
 
 model = model.to(device)
-model.train()
+model.vision_projector.train()
 
 '''for param in model.phi_model.parameters():
     if param.requires_grad:
