@@ -110,10 +110,16 @@ phi_config_obj = CustomPhiConfig(
 
 extra = dict(
     num_epochs=15,
-    resume=False,
+    resume=True,
     data_dir='../data',
     phi_path="../drive/MyDrive/Capstone/s29erav1-capstone-multimodel/phi2",
     checkpoint_dir='../drive/MyDrive/Capstone/checkpoints',
     max_seqlen=70,
     batch_size=3
+)
+
+qlora_config = dict(
+    max_seqlen=512,
+    max_caption_len=100,
+    batch_size=10
 )

@@ -50,10 +50,14 @@ class ImageFeatureToGenTextDataset(Dataset):
 
         token_ids = self.tokenizer.encode( caption_dict.get('caption') )
 
-        token_ids = token_ids[:extra['max_seqlen']]
-
         context_token_ids = self.tokenizer.encode("<context/>")
         padding_token_count = extra.get('max_seqlen') - len(token_ids) - len(context_token_ids)
+        if padding_token_count < 0:
+            padding_token_count = 0
+            truncate_len = extra['max_seqlen'] - len(context_token_ids) - 1  # 1 for image embed
+            token_ids = token_ids[:truncate_len]
+
+
         decoder_input = torch.cat(
             [
                 torch.tensor(context_token_ids, dtype=torch.int32),
@@ -64,6 +68,7 @@ class ImageFeatureToGenTextDataset(Dataset):
         )
 
         padding_token_count += len(context_token_ids) - 1
+
         label = torch.cat(
             [
                 torch.tensor(token_ids, dtype=torch.int32),
