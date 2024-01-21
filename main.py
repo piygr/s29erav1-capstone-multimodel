@@ -70,13 +70,6 @@ import torch.optim as optim
 import torch
 
 model = CLIPVisionToPhi(model_config)
-optimizer = optim.Adam(filter(lambda p: p.requires_grad, model.parameters()), lr=0.001)
-epoch = 0
-if extra['resume']:
-    checkpoint = torch.load(extra['checkpoint_dir'] + '/' + 'vp_ckpt_0.pth')
-    model.vision_projector.load_state_dict(checkpoint['model_state_dict'])
-    optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
-    epoch = checkpoint['epoch']
 
 import gc
 gc.collect()
@@ -87,20 +80,23 @@ print("torch.cuda.memory_reserved: %fGB"%(torch.cuda.memory_reserved(0)/1024/102
 print("torch.cuda.max_memory_reserved: %fGB"%(torch.cuda.max_memory_reserved(0)/1024/1024/1024))
 
 model = model.to(device)
-model.vision_projector.train()
-
-'''for param in model.phi_model.parameters():
-    if param.requires_grad:
-        print(True)
-        break'''
-
 total_epochs = extra['num_epochs']
 
 epoch_loss = []
 
 train_dl  = get_dataloaders(extra['data_dir'], tokenizer, train_only=True)
 
+optimizer = optim.Adam(filter(lambda p: p.requires_grad, model.parameters()), lr=0.001)
+epoch = 0
+if extra['resume']:
+    checkpoint = torch.load(extra['checkpoint_dir'] + '/' + 'vp_ckpt_0.pth')
+    model.vision_projector.load_state_dict(checkpoint['model_state_dict'])
+    optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
+    epoch = checkpoint['epoch'] + 1
+
 step_count = -1
+model.vision_projector.train()
+
 print('---->>>>> Training logs <<<<<-----')
 for epoch in range(epoch, total_epochs):
     #data_iter = iter(train_dl)
