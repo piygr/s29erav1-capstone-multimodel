@@ -30,8 +30,9 @@ class CLIPVisionToPhi(nn.Module):
 
         self.loss = CausalLMLoss()
 
-        for param in self.phi_model.parameters():
-            param.requires_grad = False
+        if self.config.freeze_phi_model:
+            for param in self.phi_model.parameters():
+                param.requires_grad = False
 
         self.metric = dict(
             total_train_steps=0,

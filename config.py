@@ -1,5 +1,5 @@
-
-from transformers import PretrainedConfig
+import torch
+from transformers import PretrainedConfig, BitsAndBytesConfig
 import math
 from typing import Optional
 
@@ -85,6 +85,7 @@ class CLIPVisionToPhiConfig(PretrainedConfig):
         self.vision_projector_config = vision_projector_config
         self.phi_config = phi_config
         self.tokenizer = kwargs.get('tokenizer')
+        self.freeze_phi_model = True
 
 
 '''
@@ -107,6 +108,42 @@ phi_config_obj = CustomPhiConfig(
 )
 
 '''
+from peft import LoraConfig
+
+bnb_config = BitsAndBytesConfig(
+            load_in_4bit=True,
+            bnb_4bit_quant_type="nf4",
+            bnb_4bit_compute_dtype=torch.float16
+)
+
+peft_config = LoraConfig(
+            lora_alpha=16,
+            lora_dropout=0.1,
+            r=64,
+            bias="none",
+            task_type="CAUSAL_LM",
+            target_modules=[
+                "Wqkv",
+                "out_proj",
+                "fc1",
+                "fc2"
+            ]
+)
+
+class MultiInstructModelConfig(PretrainedConfig):
+    def __init__(self,
+                 vision_projector_config: VisionProjectorConfig,
+                 **kwargs
+                 ):
+
+        self.vision_projector_config = vision_projector_config
+        self.quantization_config = bnb_config
+
+        self.peft_config = peft_config
+
+        self.tokenizer = kwargs.get('tokenizer')
+        self.freeze_vision_projector = True
+
 
 extra = dict(
     num_epochs=15,
@@ -119,7 +156,14 @@ extra = dict(
 )
 
 qlora_config = dict(
-    max_seqlen=512,
+    num_steps=500,
+    max_seqlen=1024,
     max_caption_len=100,
-    batch_size=10
+    batch_size=8,
+    micro_batch_size=2,
+    data_dir='../data',
+    output_dir="./results",
+    vision_model=True,
+    vision_projector_file='./checkpoints/vp_ckpt_1.pth',
+    max_steps=1000
 )

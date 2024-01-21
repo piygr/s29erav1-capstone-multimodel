@@ -1,9 +1,8 @@
-from torch import optim
+import torch.optim as optim
 
 from config import VisionProjectorConfig, CLIPVisionToPhiConfig, CustomPhiConfig, extra
 from transformers import AutoTokenizer
 
-from models.multi_model import CLIPVisionToPhi
 from config import extra
 from dataset import get_dataloaders
 from models.multi_model import CLIPVisionToPhi
@@ -58,15 +57,12 @@ device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
 model_config = CLIPVisionToPhiConfig(
     vision_projector_config=VisionProjectorConfig(),
-    phi_config=CustomPhiConfig(
-        vocab_size=len(tokenizer)
-    ),
+    phi_config=CustomPhiConfig(),
     tokenizer=tokenizer
 )
 
 
 
-import torch.optim as optim
 import torch
 
 model = CLIPVisionToPhi(model_config)
