@@ -1,9 +1,10 @@
 import math
 import torch
 import torch.optim as optim
-from peft import get_peft_model
-from transformers import AutoTokenizer, AutoModelForCausalLM
-from config import qlora_config as cfg, MultiInstructModelConfig, VisionProjectorConfig, bnb_config, peft_config
+from transformers import AutoTokenizer
+from trl import SFTTrainer
+
+from config import qlora_config as cfg, MultiInstructModelConfig, VisionProjectorConfig
 
 from qlora.models.qlora_multi_model import MultiInstructModelBase
 from qlora.dataset import get_dataloaders
@@ -14,26 +15,25 @@ tokenizer = AutoTokenizer.from_pretrained('microsoft/phi-2', trust_remote_code=T
 tokenizer.pad_token = tokenizer.eos_token
 
 if cfg['vision_model']:
-    model_wrap_config = MultiInstructModelConfig(
+    model_config = MultiInstructModelConfig(
         vision_projector_config=VisionProjectorConfig(),
         tokenizer=tokenizer
     )
 
-    model_wrap = MultiInstructModelBase(
-        model_wrap_config
+    model = MultiInstructModelBase(
+        model_config
     )
 
-
-    model = model_wrap.phi_model
-
 else:
-    model = AutoModelForCausalLM.from_pretrained('microsoft/phi-2',
-                                                 trust_remote_code=True,
-                                                 quantization_config=bnb_config
-                                                 )
+    model_config = MultiInstructModelConfig(
+        vision_projector_config=None,
+        tokenizer=tokenizer
+    )
 
-    model.use_cache = False
-    model = get_peft_model(model, peft_config)
+    model = MultiInstructModelBase(
+        model_config
+    )
+
 
 print(model)
 train_dl = get_dataloaders(cfg['data_dir'], tokenizer, vision_model=cfg['vision_model'], train_only=True)
@@ -54,9 +54,11 @@ one_pass_loss = []
 
 
 optimizer = optim.AdamW(filter(lambda p: p.requires_grad, model.parameters()), lr=2e-4)
+step_count = 0
+
 if cfg['resume']:
-    checkpoint = torch.load(cfg['output_dir'] + '/' + 'qlr_mm_ckpt_0.pth')
-    model.load_state_dict(checkpoint['model_state_dict'])
+    checkpoint = torch.load(cfg['output_dir'] + '/' + 'qlora_config_0.pth')
+    model.phi_model.from_pretrained( cfg['output_dir'] + '/qlora_adapter_100', is_trainable=True )
     optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
     step_count = checkpoint['step_count']
 
@@ -66,7 +68,8 @@ print('---->>>>> Training logs <<<<<-----')
 data_iter = iter(train_dl)
 optimizer.zero_grad()
 
-for step_count in range(total_steps):
+
+while step_count < total_steps:
     train_batch = next(data_iter)
 
     label = train_batch['label']
@@ -77,30 +80,24 @@ for step_count in range(total_steps):
             input_ids = train_batch['input_ids']
             mask = train_batch['mask']
 
-            logits = model_wrap.get_logits(
-                model,
+            output = model(
                 input_ids,
                 image_feature=image_feature,
-                mask=mask)
+                mask=mask,
+                labels=label.type(torch.LongTensor).to(device)
+            )
 
         else:
             input_ids = train_batch['input_ids']
             mask = train_batch['mask']
 
-            logits = model(
+            output = model(
                 input_ids=input_ids.to(device),
-                attention_mask=mask.to(device)
+                attention_mask=mask.to(device),
+                labels=label.type(torch.LongTensor).to(device)
             )
 
-
-        label = label.type(torch.LongTensor).to(device)
-
-        loss = model.loss(
-            logits,
-            label
-        )
-
-        #loss = output['loss']
+        loss = output['loss']
         loss.backward()
 
         one_pass_loss.append(loss.item())
@@ -112,16 +109,17 @@ for step_count in range(total_steps):
         a = torch.tensor(one_pass_loss, dtype=torch.float16)
         print('Step#:', '%04d' % (step_count), 'loss =', '{:.6f}'.format(a.mean()))
         torch.save({
-            'model_state_dict': model.state_dict(),
             'optimizer_state_dict': optimizer.state_dict(),
             'loss': a.mean(),
             'step_count': step_count,
-        }, '%s/qlora_ckpt_%s.pth' % (cfg['output_dir'], step_count))
+        }, '%s/qlora_config_%s.pth' % (cfg['output_dir'], step_count))
 
-    if step_count > 0 and (step_count % len(train_dl) == 0):
-        b = torch.tensor(one_pass_loss, dtype=torch.float16)
-        print('Epoch:', '%04d' % math.ceil(step_count/len(train_dl)), 'loss =', '{:.6f}'.format(b.mean()))
-        one_pass_loss = []
+        model.phi_model.save_pretrained( '%s/qlora_adapter_%s' % (cfg['output_dir'], step_count) ),
+
+        if step_count > 0 and (step_count % len(train_dl) == 0):
+            b = torch.tensor(one_pass_loss, dtype=torch.float16)
+            print('Epoch:', '%04d' % math.ceil(step_count/len(train_dl)), 'loss =', '{:.6f}'.format(b.mean()))
+            one_pass_loss = []
 
     if (cfg['micro_batch_size'] * step_count) % cfg['batch_size'] == 0:
         optimizer.step()
@@ -130,6 +128,8 @@ for step_count in range(total_steps):
         import gc
         gc.collect()
         torch.cuda.empty_cache()
+
+    step_count += 1
 
 
 '''
@@ -187,3 +187,4 @@ for name, module in trainer.model.named_modules():
 
 trainer.train()
 '''
+SFTTrainer

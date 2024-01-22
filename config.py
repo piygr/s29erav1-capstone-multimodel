@@ -134,7 +134,7 @@ peft_config = LoraConfig(
 
 class MultiInstructModelConfig(PretrainedConfig):
     def __init__(self,
-                 vision_projector_config: VisionProjectorConfig,
+                 vision_projector_config: Optional[VisionProjectorConfig] = None,
                  **kwargs
                  ):
 
