@@ -167,5 +167,6 @@ qlora_config = dict(
     output_dir="./results",
     vision_model=True,
     vision_projector_file='./checkpoints/vp_ckpt_1.pth',
-    max_steps=1000
+    max_steps=1000,
+    resume=False
 )

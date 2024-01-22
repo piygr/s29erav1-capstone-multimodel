@@ -48,7 +48,7 @@ class QnAInstructDataset(Dataset):
 
         context_token_ids = self.tokenizer.encode("<context/>")
 
-        if self.image_features:
+        if self.image_features is not None:
             image_feature = torch.from_numpy( self.image_features[image_index] ).squeeze(0)
 
             padding_token_count = cfg.get('max_seqlen') - len(token_ids) - len(context_token_ids) - 1
