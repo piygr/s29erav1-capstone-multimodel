@@ -2,7 +2,6 @@ import math
 import torch
 import torch.optim as optim
 from transformers import AutoTokenizer
-from trl import SFTTrainer
 
 from config import qlora_config as cfg, MultiInstructModelConfig, VisionProjectorConfig
 
@@ -187,4 +186,3 @@ for name, module in trainer.model.named_modules():
 
 trainer.train()
 '''
-SFTTrainer

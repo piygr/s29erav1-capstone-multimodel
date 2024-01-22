@@ -16,8 +16,33 @@ class QnAInstructDataset(Dataset):
 
         super().__init__()
 
+        self.instruct_data = []
         with open(instruct_file, 'r') as f:
-            self.instruct_data = json.load(f)
+            instruct_json = json.load(f)
+            for idx, inst in enumerate(instruct_json):
+                image_index = inst.get('image_index')
+                conversation = inst.get('conversations')
+
+                text = None
+                for i, qa in enumerate(conversation):
+                    role = qa['from']
+                    msg = qa['value'].replace('<image>', '')
+                    if i%2 == 0:
+                        text = ''
+
+                        if role == 'human':
+                            text += 'Human###' + msg + '\n'
+                    else:
+                        if role == 'gpt' and text:
+                            text += 'AI###' + msg + '\n'
+
+                            instruct_dict = dict(
+                                image_index=image_index,
+                                qna=text
+                            )
+
+                            self.instruct_data.append(instruct_dict)
+
 
         self.image_features = None
         if image_feature_file:
@@ -33,19 +58,9 @@ class QnAInstructDataset(Dataset):
 
         instruct_dict = self.instruct_data[idx]
         image_index = instruct_dict.get('image_index')
-        conversation = instruct_dict.get('conversations')
-        text = ''
-        for i, qa in enumerate(conversation):
-            role = qa['from']
-            msg = qa['value']
-            if role == 'human':
-                text += 'Human###' + msg + '\n'
-            else:
-                text += 'AI###' + msg + '\n\n'
+        qna = instruct_dict.get('qna')
 
-        text = text.replace('<image>', '')
-        token_ids = self.tokenizer.encode(text)
-
+        token_ids = self.tokenizer.encode(qna)
         context_token_ids = self.tokenizer.encode("<context/>")
 
         if self.image_features is not None:
