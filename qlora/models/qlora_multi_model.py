@@ -47,7 +47,7 @@ class MultiInstructModelBase(nn.Module):
                 image_feature=None,
                 mask=None):
 
-        if image_feature:
+        if image_feature is not None:
             context_embeds = self.get_visual_projector_embedding(image_feature).requires_grad_(requires_grad=False)
             text_embd = model.get_input_embeddings()(input_ids)
 
