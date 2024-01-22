@@ -31,7 +31,7 @@ class MultiInstructModelBase(nn.Module):
 
         self.phi_model = get_peft_model(self.phi_model, self.config.peft_config)
 
-        if self.freeze_vision_projector:
+        if self.config.freeze_vision_projector:
             for param in self.vision_projector.parameters():
                 param.requires_grad = False
 
