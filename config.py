@@ -123,8 +123,10 @@ peft_config = LoraConfig(
             bias="none",
             task_type="CAUSAL_LM",
             target_modules=[
-                "Wqkv",
-                "out_proj",
+                "q_proj",
+                "k_proj",
+                "v_proj",
+                "dense",
                 "fc1",
                 "fc2"
             ]
