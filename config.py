@@ -158,7 +158,7 @@ extra = dict(
 )
 
 qlora_config = dict(
-    num_steps=500,
+    num_steps=1000,
     max_seqlen=1024,
     max_caption_len=100,
     batch_size=8,
@@ -167,6 +167,5 @@ qlora_config = dict(
     output_dir="./results",
     vision_model=True,
     vision_projector_file='./checkpoints/vp_ckpt_1.pth',
-    max_steps=1000,
     resume=False
 )

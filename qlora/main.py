@@ -66,7 +66,7 @@ print('---->>>>> Training logs <<<<<-----')
 data_iter = iter(train_dl)
 optimizer.zero_grad()
 
-for step_count in range(cfg['max_steps']):
+for step_count in range(total_steps):
     train_batch = next(data_iter)
 
     label = train_batch['label']
