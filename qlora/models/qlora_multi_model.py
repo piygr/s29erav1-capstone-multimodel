@@ -49,7 +49,7 @@ class MultiInstructModelBase(nn.Module):
 
         if image_feature:
             context_embeds = self.get_visual_projector_embedding(image_feature).requires_grad_(requires_grad=False)
-            text_embd = model.text_embedding(input_ids)
+            text_embd = model.get_input_embeddings()(input_ids)
 
             embeds = torch.cat(
                 [context_embeds,
