@@ -159,7 +159,7 @@ extra = dict(
 
 qlora_config = dict(
     num_steps=1000,
-    max_seqlen=1024,
+    max_seqlen=512,
     max_caption_len=100,
     batch_size=8,
     micro_batch_size=2,

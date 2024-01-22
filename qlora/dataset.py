@@ -148,7 +148,7 @@ def get_dataloaders(root_dir, tokenizer, vision_model=True, train_only=False):
         tokenizer=tokenizer
     )
 
-    train_dataloader = DataLoader(train_ds, shuffle=True, batch_size=cfg['batch_size'])
+    train_dataloader = DataLoader(train_ds, shuffle=True, batch_size=cfg['micro_batch_size'])
 
     if train_only:
         return train_dataloader
@@ -162,6 +162,6 @@ def get_dataloaders(root_dir, tokenizer, vision_model=True, train_only=False):
         tokenizer=tokenizer
     )
 
-    val_dataloader = DataLoader(val_ds, shuffle=True, batch_size=cfg['batch_size'])
+    val_dataloader = DataLoader(val_ds, shuffle=True, batch_size=cfg['micro_batch_size'])
 
     return train_dataloader, val_dataloader
