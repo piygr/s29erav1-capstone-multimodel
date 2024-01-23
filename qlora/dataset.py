@@ -33,13 +33,13 @@ class QnAInstructDataset(Dataset):
                         if role == 'human':
                             text += 'Human###' + msg + '\n'
                     else:
-                        if role == 'gpt' and text and instruct_json.get('caption', ''):
+                        if role == 'gpt' and text and inst.get('caption', ''):
                             text += 'AI###' + msg + '\n'
 
                             instruct_dict = dict(
                                 image_index=image_index,
                                 qna=text,
-                                caption=instruct_json.get('caption', '')
+                                caption=inst.get('caption', '')
                             )
 
                             self.instruct_data.append(instruct_dict)
@@ -48,6 +48,7 @@ class QnAInstructDataset(Dataset):
         self.image_features = None
         if image_feature_file:
             self.image_features = np.load(image_feature_file)
+
         self.tokenizer = tokenizer
 
 
@@ -133,7 +134,8 @@ class QnAInstructDataset(Dataset):
             label = torch.cat(
                 [
                     torch.tensor(token_ids, dtype=torch.int32),
-                    torch.tensor([self.tokenizer.eos_token_id], dtype=torch.int32)
+                    torch.tensor([self.tokenizer.eos_token_id], dtype=torch.int32),
+                    torch.tensor([self.tokenizer.pad_token_id] * padding_token_count, dtype=torch.int32)
                 ],
                 dim=0
             )
