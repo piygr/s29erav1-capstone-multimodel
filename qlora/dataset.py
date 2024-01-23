@@ -33,12 +33,13 @@ class QnAInstructDataset(Dataset):
                         if role == 'human':
                             text += 'Human###' + msg + '\n'
                     else:
-                        if role == 'gpt' and text:
+                        if role == 'gpt' and text and instruct_json.get('caption', ''):
                             text += 'AI###' + msg + '\n'
 
                             instruct_dict = dict(
                                 image_index=image_index,
-                                qna=text
+                                qna=text,
+                                caption=instruct_json.get('caption', '')
                             )
 
                             self.instruct_data.append(instruct_dict)

@@ -5,7 +5,7 @@ from transformers import AutoTokenizer
 
 from config import qlora_config as cfg, MultiInstructModelConfig, VisionProjectorConfig
 
-from qlora.models.qlora_multi_model import MultiInstructModelBase
+from qlora.models.qlora_multi_model import MultiInstructModelBase, CausalLMLoss
 from qlora.dataset import get_dataloaders
 
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
@@ -73,17 +73,17 @@ while step_count < total_steps:
 
     label = train_batch['label']
 
-    with torch.autocast(device_type=device, dtype=torch.bfloat16):
+    with torch.autocast(device_type=device, dtype=torch.float32):
         if cfg['vision_model']:
             image_feature = train_batch['image_feature']
             input_ids = train_batch['input_ids']
             mask = train_batch['mask']
 
             output = model(
-                input_ids,
-                image_feature=image_feature,
-                mask=mask,
-                labels=label.type(torch.LongTensor).to(device)
+                input_ids.to(device),
+                image_feature=image_feature.to(device),
+                mask=mask.to(device),
+                # labels=label.type(torch.LongTensor).to(device)
             )
 
         else:
@@ -93,10 +93,11 @@ while step_count < total_steps:
             output = model(
                 input_ids=input_ids.to(device),
                 attention_mask=mask.to(device),
-                labels=label.type(torch.LongTensor).to(device)
+                #labels=label.type(torch.LongTensor).to(device)
             )
 
-        loss = output['loss']
+        loss = CausalLMLoss()(output.to(device), label.type(torch.LongTensor).to(device) )
+        #loss = output['loss']
         loss.backward()
 
         one_pass_loss.append(loss.item())
@@ -113,7 +114,7 @@ while step_count < total_steps:
             'step_count': step_count,
         }, '%s/qlora_config_%s.pth' % (cfg['output_dir'], step_count))
 
-        model.phi_model.save_pretrained( '%s/qlora_adapter_%s' % (cfg['output_dir'], step_count) ),
+        model.phi_model.save_pretrained( '%s/qlora_adapter_%s' % (cfg['output_dir'], step_count) )
 
         if step_count > 0 and (step_count % len(train_dl) == 0):
             b = torch.tensor(one_pass_loss, dtype=torch.float16)

@@ -95,6 +95,10 @@ class CLIPVisionToPhi(nn.Module):
 
         return logits
 
+
+    def generate(self,
+                 image_feature):
+
     '''
     def forward(self,
                 image_feature,
@@ -125,7 +129,7 @@ class CLIPVisionToPhi(nn.Module):
             return dict(logits=logits, loss=loss)
 
         return logits
-        
+
     '''
 
 

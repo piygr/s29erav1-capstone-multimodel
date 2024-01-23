@@ -117,19 +117,19 @@ bnb_config = BitsAndBytesConfig(
 )
 
 peft_config = LoraConfig(
-            lora_alpha=16,
-            lora_dropout=0.1,
-            r=64,
-            bias="none",
-            task_type="CAUSAL_LM",
-            target_modules=[
-                "q_proj",
-                "k_proj",
-                "v_proj",
-                "dense",
-                "fc1",
-                "fc2"
-            ]
+    lora_alpha=16,
+    lora_dropout=0.1,
+    r=64,
+    bias="none",
+    task_type="CAUSAL_LM",
+    target_modules=[
+        "q_proj",
+        "k_proj",
+        "v_proj",
+        "dense",
+        "fc1",
+        "fc2"
+    ]
 )
 
 class MultiInstructModelConfig(PretrainedConfig):

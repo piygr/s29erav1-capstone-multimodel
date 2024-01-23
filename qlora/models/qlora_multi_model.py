@@ -8,6 +8,30 @@ from models.vision_projector_model import VisionProjector
 
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
+class CausalLMLoss(nn.Module):
+    """Causal Language Modeling loss.
+
+    Reference:
+        Improving Language Understanding by Generative Pre-Training.
+        https://cdn.openai.com/research-covers/language-unsupervised/language_understanding_paper.pdf.
+
+    """
+
+    def __init__(self, shift_labels: bool = True) -> None:
+        super().__init__()
+
+        self.shift_labels = shift_labels
+        self.loss_fct = nn.CrossEntropyLoss()
+
+    def forward(self, logits: torch.FloatTensor, labels: torch.LongTensor) -> torch.FloatTensor:
+        if self.shift_labels:
+            logits = logits[..., :-1, :].contiguous()
+            labels = labels[..., 1:].contiguous()
+
+        loss = self.loss_fct(logits.view(-1, logits.size(-1)), labels.view(-1))
+
+        return loss
+
 
 class MultiInstructModelBase(nn.Module):
     def __init__(self,
