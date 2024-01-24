@@ -1,13 +1,17 @@
+from PIL import Image
 from torch.utils.data import Dataset, DataLoader
 
 import json
 import numpy as np
 import torch
-from transformers import AutoTokenizer
+
+from transformers import CLIPImageProcessor, CLIPVisionModel, CLIPVisionConfig
 
 from config import extra
 from constants import *
 from utils import tokenizer_image_token
+import requests
+
 
 
 class ImageFeatureToGenTextDataset(Dataset):
@@ -72,28 +76,123 @@ class ImageFeatureToGenTextDataset(Dataset):
         )
 
 
+class LiveImageToGenTextDataset(Dataset):
+    def __init__(self,
+                 image_indices_file,
+                 caption_file,
+                 tokenizer,
+                 train=True
+                 ):
+
+        super().__init__()
+
+
+
+        sep_token = ' caption: '
+
+        self.directory = 'val2014'
+        if train:
+            self.directory = 'train2014'
+
+        with open(image_indices_file, 'r') as f:
+            self.image_indices_json = json.load(f)
+            prefix = 'COCO_%s_' % self.directory
+            image_ids = [int(id.replace(prefix, '').split('.')[0]) for id in self.image_indices_json]
+            self.image_ids_dict = {image_id: idx for idx, image_id in enumerate(image_ids)}
+
+
+        with open(caption_file, 'r') as f:
+            caption_file_json = json.load(f)
+            self.captions = [cap for cap in caption_file_json['annotations']]
+
+
+        self.tokenizer = tokenizer
+        self.model = CLIPVisionModel.from_pretrained("openai/clip-vit-base-patch32")
+        # model = model.vision_model
+        self.processor = CLIPImageProcessor.from_pretrained("openai/clip-vit-base-patch32")
+
+
+    def __len__(self):
+        return len(self.captions)
+
+
+    def __getitem__(self, idx):
+
+        caption_dict = self.captions[idx]
+        image_id = caption_dict.get('image_id')
+        image_index = self.image_ids_dict.get(image_id)
+        image_url = 'http://images.cocodataset.org/%s/%s' % (self.directory, self.image_indices_json[image_index])
+
+        image = Image.open(requests.get(image_url, stream=True).raw)
+        inputs = self.processor(images=image, return_tensors="pt")
+        x = self.model(**inputs, output_hidden_states=True)
+        image_feature = x.hidden_states[-2][:, 1:].squeeze(0).cpu().detach()
+
+        prompt = '<image> caption: ' + caption_dict.get('caption') + self.tokenizer.eos_token
+
+        token_ids = torch.tensor(tokenizer_image_token(prompt, tokenizer=self.tokenizer))
+
+        labels = token_ids.clone()
+
+        parts = prompt.split(' caption: ')
+        non_caption_label = parts[0] + ' caption: '
+        non_caption_token_length = len( tokenizer_image_token(non_caption_label, tokenizer=self.tokenizer) )
+        labels[0: non_caption_token_length] = IGNORE_INDEX
+
+        return dict(
+            image_features=image_feature,
+            input_ids=token_ids,
+            labels=labels
+        )
+
+
 def get_dataloaders(root_dir, tokenizer, train_only=False):
-    train_ds = ImageFeatureToGenTextDataset(
-        image_indices_file='%s/train2014_ids.json' % root_dir,
-        image_feature_file='%s/train2014_features.npy' % root_dir,
-        caption_file='%s/captions_train2014.json' % root_dir,
-        tokenizer=tokenizer,
-        train=True
-    )
 
-    train_dataloader = DataLoader(train_ds, shuffle=True, batch_size=extra['batch_size'])
+    if extra['live_image_processing']:
+        train_ds = LiveImageToGenTextDataset(
+            image_indices_file='%s/train2014_ids.json' % root_dir,
+            caption_file='%s/captions_train2014.json' % root_dir,
+            tokenizer=tokenizer,
+            train=True
+        )
 
-    if train_only:
-        return train_dataloader
+        train_dataloader = DataLoader(train_ds, shuffle=True, batch_size=extra['batch_size'])
 
-    val_ds = ImageFeatureToGenTextDataset(
-        image_indices_file='%s/val2014_ids.json' % root_dir,
-        image_feature_file='%s/val2014_features.npy' % root_dir,
-        caption_file='%s/captions_val2014.json' % root_dir,
-        tokenizer=tokenizer,
-        train=False
-    )
+        if train_only:
+            return train_dataloader
 
-    val_dataloader = DataLoader(val_ds, shuffle=True, batch_size=extra['batch_size'])
+        val_ds = LiveImageToGenTextDataset(
+            image_indices_file='%s/val2014_ids.json' % root_dir,
+            caption_file='%s/captions_val2014.json' % root_dir,
+            tokenizer=tokenizer,
+            train=False
+        )
 
-    return train_dataloader, val_dataloader
+        val_dataloader = DataLoader(val_ds, shuffle=True, batch_size=extra['batch_size'])
+
+        return train_dataloader, val_dataloader
+    else:
+        train_ds = ImageFeatureToGenTextDataset(
+            image_indices_file='%s/train2014_ids.json' % root_dir,
+            image_feature_file='%s/train2014_features.npy' % root_dir,
+            caption_file='%s/captions_train2014.json' % root_dir,
+            tokenizer=tokenizer,
+            train=True
+        )
+
+        train_dataloader = DataLoader(train_ds, shuffle=True, batch_size=extra['batch_size'])
+
+        if train_only:
+            return train_dataloader
+
+        val_ds = ImageFeatureToGenTextDataset(
+            image_indices_file='%s/val2014_ids.json' % root_dir,
+            image_feature_file='%s/val2014_features.npy' % root_dir,
+            caption_file='%s/captions_val2014.json' % root_dir,
+            tokenizer=tokenizer,
+            train=False
+        )
+
+        val_dataloader = DataLoader(val_ds, shuffle=True, batch_size=extra['batch_size'])
+
+        return train_dataloader, val_dataloader

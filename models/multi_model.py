@@ -36,10 +36,12 @@ class CLIPVisionToPhi(nn.Module):
                 param.requires_grad = False
 
 
+
     def prepare_input_labels(self,
                              image_embeds,
                              input_ids,
                              labels=None):
+
         new_input_embeds = []
         new_labels = []
         for batch_idx, cur_input_ids in enumerate(input_ids):
@@ -76,6 +78,9 @@ class CLIPVisionToPhi(nn.Module):
 
         new_input_embeds = torch.stack(new_input_embeds, dim=0)
 
+        print('image->', image_embeds.size())
+        print('input->', new_input_embeds.size())
+        print('label->', new_labels.size())
 
         return new_input_embeds, new_labels
 

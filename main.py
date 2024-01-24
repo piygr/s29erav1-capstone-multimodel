@@ -61,7 +61,6 @@ def train_vision_projector():
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 train_dl  = get_dataloaders(extra['data_dir'], tokenizer, train_only=True)
 
-
 model_config = CLIPVisionToPhiConfig(
     vision_projector_config=VisionProjectorConfig(),
     phi_config=CustomPhiConfig(),

@@ -150,11 +150,12 @@ class MultiInstructModelConfig(PretrainedConfig):
 extra = dict(
     num_epochs=15,
     resume=False,
-    data_dir='..',
+    data_dir='./data',
     phi_path="../drive/MyDrive/Capstone/s29erav1-capstone-multimodel/phi2",
     checkpoint_dir='../checkpoints',
     max_seqlen=100,
-    batch_size=1
+    batch_size=1,
+    live_image_processing=True
 )
 
 qlora_config = dict(
