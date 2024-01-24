@@ -60,7 +60,7 @@ class ImageFeatureToGenTextDataset(Dataset):
 
         labels = token_ids.clone()
 
-        parts = labels.split(' caption: ')
+        parts = prompt.split(' caption: ')
         non_caption_label = parts[0] + ' caption: '
         non_caption_token_length = len( tokenizer_image_token(non_caption_label, tokenizer=self.tokenizer) )
         labels[0: non_caption_token_length] = IGNORE_INDEX
