@@ -6,6 +6,8 @@ import torch
 from transformers import AutoTokenizer
 
 from config import extra
+from constants import *
+from utils import tokenizer_image_token
 
 
 class ImageFeatureToGenTextDataset(Dataset):
@@ -18,6 +20,10 @@ class ImageFeatureToGenTextDataset(Dataset):
                  ):
 
         super().__init__()
+
+
+
+        sep_token = ' caption: '
 
         self.image_prefix = 'COCO_val2014_'
         if train:
@@ -48,47 +54,21 @@ class ImageFeatureToGenTextDataset(Dataset):
         image_index = self.image_ids_dict.get(image_id)
         image_feature = torch.from_numpy( self.image_feature[image_index] ).squeeze(0)
 
-        token_ids = self.tokenizer.encode( caption_dict.get('caption') )
+        prompt = '<image> caption: ' + caption_dict.get('caption') + self.tokenizer.eos_token
 
-        context_token_ids = self.tokenizer.encode("<context/>")
-        padding_token_count = extra.get('max_seqlen') - len(token_ids) - len(context_token_ids)
-        if padding_token_count < 0:
-            padding_token_count = 0
-            truncate_len = extra['max_seqlen'] - len(context_token_ids) - 1  # 1 for image embed
-            token_ids = token_ids[:truncate_len]
+        token_ids = torch.tensor(tokenizer_image_token(prompt, tokenizer=self.tokenizer))
 
+        labels = token_ids.clone()
 
-        decoder_input = torch.cat(
-            [
-                torch.tensor(context_token_ids, dtype=torch.int32),
-                torch.tensor(token_ids, dtype=torch.int32),
-                torch.tensor([self.tokenizer.pad_token_id] * padding_token_count, dtype=torch.int32)
-            ],
-            dim=0
-        )
-
-        padding_token_count += len(context_token_ids) - 1
-
-        label = torch.cat(
-            [
-                torch.tensor(token_ids, dtype=torch.int32),
-                torch.tensor([self.tokenizer.eos_token_id], dtype=torch.int32),
-                torch.tensor([self.tokenizer.pad_token_id] * padding_token_count, dtype=torch.int32)
-            ],
-            dim=0
-        )
-
-        if self.tokenizer.pad_token_id is None:
-            mask = torch.ones(decoder_input.size(-1), dtype=torch.int32)
-        else:
-            mask = (decoder_input != self.tokenizer.pad_token_id).int()
+        parts = labels.split(' caption: ')
+        non_caption_label = parts[0] + ' caption: '
+        non_caption_token_length = len( tokenizer_image_token(non_caption_label, tokenizer=self.tokenizer) )
+        labels[0: non_caption_token_length] = IGNORE_INDEX
 
         return dict(
-            image_feature=image_feature,
-            caption=caption_dict.get('caption'),
-            decoder_caption=decoder_input,
-            mask=mask,
-            label=label
+            image_features=image_feature,
+            input_ids=token_ids,
+            labels=labels
         )
 
 

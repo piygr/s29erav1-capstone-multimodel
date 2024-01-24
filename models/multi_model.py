@@ -2,6 +2,7 @@ import torch
 import torch.nn as nn
 
 from config import CLIPVisionToPhiConfig
+from constants import IMAGE_TOKEN_INDEX, IGNORE_INDEX
 from models.phi2.custom_modeling_phi import PhiForCausalLM
 from models.vision_projector_model import VisionProjector
 from transformers import AutoModelForCausalLM
@@ -23,7 +24,7 @@ class CLIPVisionToPhi(nn.Module):
         super().__init__()
         self.config = config
         self.vision_projector = VisionProjector(self.config.vision_projector_config)
-        #self.phi_model = AutoModelForCausalLM.from_pretrained(extra['phi_path'], local_files_only=True, torch_dtype=torch.float16) #PhiForCausalLM(self.config.phi_config)
+
         self.phi_model = AutoModelForCausalLM.from_pretrained('microsoft/phi-2', trust_remote_code=True)
         self.text_embedding = self.phi_model.get_input_embeddings()
         self.tokenizer = self.config.tokenizer
@@ -34,61 +35,69 @@ class CLIPVisionToPhi(nn.Module):
             for param in self.phi_model.parameters():
                 param.requires_grad = False
 
-        self.metric = dict(
-            total_train_steps=0,
-            epoch_train_loss=[],
-            epoch_train_acc=[],
-            epoch_train_steps=0,
-            total_val_steps=0,
-            epoch_val_loss=[],
-            epoch_val_acc=[],
-            epoch_val_steps=0,
-            train_loss=[],
-            val_loss=[],
-            train_acc=[],
-            val_acc=[]
-        )
+
+    def prepare_input_labels(self,
+                             image_embeds,
+                             input_ids,
+                             labels=None):
+        new_input_embeds = []
+        new_labels = []
+        for batch_idx, cur_input_ids in enumerate(input_ids):
+            image_token_indices = torch.where(cur_input_ids == IMAGE_TOKEN_INDEX)[0]
+            cur_new_input_embeds = []
+            if labels is not None:
+                cur_labels = labels[batch_idx]
+                cur_new_labels = []
+                assert cur_labels.shape == cur_input_ids.shape
+
+            image_token_start = image_token_indices[0]
+
+            cur_new_input_embeds.append(self.text_embedding(cur_input_ids[:image_token_start]))
+            cur_new_input_embeds.append(image_embeds[batch_idx])
+            cur_new_input_embeds.append(self.text_embedding(cur_input_ids[image_token_start + 1:]))
+
+            new_input_embeds.append(cur_new_input_embeds)
+            if labels is not None:
+                cur_new_labels.append(cur_labels[:image_token_start])
+                cur_new_labels.append(
+                    torch.full((image_embeds[batch_idx].shape[0],), IGNORE_INDEX, device=labels.device,
+                               dtype=labels.dtype))
+
+                cur_new_labels.append(cur_labels[image_token_start + 1:])
+
+                new_labels.append(cur_new_labels)
+
+        new_input_embeds = torch.stack(new_input_embeds, dim=0)
+        new_labels = torch.stack(new_labels, dim=0)
+
+        return new_input_embeds, new_labels
+
 
     def forward(self,
-                image_feature,
-                caption_ids,
-                label=None,
-                mask=None
+                image_features,
+                input_ids,
+                labels=None
                 ):
 
-        context_embeds = self.vision_projector(image_feature)
+        image_embeds = self.vision_projector(image_features)
 
-        text_embd = self.text_embedding(caption_ids)
-
-        embeds = torch.cat(
-            [context_embeds,
-             text_embd],
-            dim=1
-        ).to(device)
-
-
-        ctx_embed_size = context_embeds.size(1)
-
-        attention_mask = torch.cat(
-            [
-                torch.ones((mask.size(0), ctx_embed_size), dtype=torch.int).to(device),
-                mask
-            ],
-            dim=1
-        ).to(device)
+        self.prepare_input_labels(
+            image_embeds,
+            input_ids,
+            labels=labels
+        )
 
         x = self.phi_model(
-            inputs_embeds=embeds,
-            attention_mask=attention_mask
+            inputs_embeds=image_embeds
         )
 
 
-        logits = x['logits'][:, ctx_embed_size:]
+        logits = x['logits']
 
-        if label is not None:
+        if labels is not None:
             loss = self.loss(
                 logits,
-                label
+                labels
             )
 
             return dict(logits=logits, loss=loss)

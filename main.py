@@ -10,8 +10,13 @@ from models.multi_model import CLIPVisionToPhi
 import torch
 
 
-tokenizer = AutoTokenizer.from_pretrained('microsoft/phi-2')
-tokenizer.pad_token = tokenizer.eos_token
+tokenizer = AutoTokenizer.from_pretrained(
+            'microsoft/phi-2',
+            model_max_length=extra['max_seqlen'],
+            padding_side="right",
+            use_fast=False
+)
+tokenizer.pad_token = tokenizer.unk_token
 
 '''
 tokenizer.add_special_tokens({
@@ -92,34 +97,24 @@ if extra['resume']:
 
 step_count = -1
 model.vision_projector.train()
-
 print('---->>>>> Training logs <<<<<-----')
 for epoch in range(epoch, total_epochs):
     #data_iter = iter(train_dl)
     #train_batch = next(data_iter)
     for batch_idx, train_batch in enumerate(train_dl):
         optimizer.zero_grad()
-        image_feature = train_batch['image_feature']
-        caption_ids = train_batch['decoder_caption']
-        decoder_mask = train_batch['mask']
-
-        label = train_batch['label']
+        image_features = train_batch['image_features']
+        input_ids = train_batch['input_ids']
+        labels = train_batch['labels']
 
         with torch.autocast(device_type=device, dtype=torch.bfloat16):
-            logits = model(
-                image_feature=image_feature.to(device),
-                caption_ids=caption_ids.to(device),
-                mask=decoder_mask.to(device)
+            output = model(
+                image_features=image_features.to(device),
+                input_ids=input_ids.to(device),
+                labels=labels
             )
 
-            label = label.type(torch.LongTensor).to(device)
-
-            loss = model.loss(
-                logits,
-                label
-            )
-
-            #loss = output['loss']
+            loss = output['loss']
             loss.backward()
 
         epoch_loss.append(loss.item())
