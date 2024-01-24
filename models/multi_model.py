@@ -70,8 +70,12 @@ class CLIPVisionToPhi(nn.Module):
                 cur_new_labels = torch.cat(cur_new_labels, dim=0)
                 new_labels.append(cur_new_labels)
 
+                new_labels = torch.stack(new_labels, dim=0)
+            else:
+                new_labels = None
+
         new_input_embeds = torch.stack(new_input_embeds, dim=0)
-        new_labels = torch.stack(new_labels, dim=0)
+
 
         return new_input_embeds, new_labels
 
@@ -84,14 +88,14 @@ class CLIPVisionToPhi(nn.Module):
 
         image_embeds = self.vision_projector(image_features)
 
-        self.prepare_input_labels(
+        input_embeds, labels = self.prepare_input_labels(
             image_embeds,
             input_ids,
             labels=labels
         )
 
         x = self.phi_model(
-            inputs_embeds=image_embeds
+            inputs_embeds=input_embeds
         )
 
 

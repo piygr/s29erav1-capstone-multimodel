@@ -52,7 +52,7 @@ class ImageFeatureToGenTextDataset(Dataset):
         caption_dict = self.captions[idx]
         image_id = caption_dict.get('image_id')
         image_index = self.image_ids_dict.get(image_id)
-        image_feature = torch.from_numpy( self.image_feature[image_index] ).squeeze(0)
+        image_feature = torch.from_numpy( self.image_feature[image_index] )
 
         prompt = '<image> caption: ' + caption_dict.get('caption') + self.tokenizer.eos_token
 
