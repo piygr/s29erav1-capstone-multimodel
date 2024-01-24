@@ -55,6 +55,8 @@ class CLIPVisionToPhi(nn.Module):
             cur_new_input_embeds.append(self.text_embedding(cur_input_ids[:image_token_start]))
             cur_new_input_embeds.append(image_embeds[batch_idx])
             cur_new_input_embeds.append(self.text_embedding(cur_input_ids[image_token_start + 1:]))
+            cur_new_input_embeds = [x.to(device) for x in cur_new_input_embeds]
+            cur_new_input_embeds = torch.cat(cur_new_input_embeds, dim=0)
 
             new_input_embeds.append(cur_new_input_embeds)
             if labels is not None:
@@ -65,6 +67,7 @@ class CLIPVisionToPhi(nn.Module):
 
                 cur_new_labels.append(cur_labels[image_token_start + 1:])
 
+                cur_new_labels = torch.cat(cur_new_labels, dim=0)
                 new_labels.append(cur_new_labels)
 
         new_input_embeds = torch.stack(new_input_embeds, dim=0)
@@ -97,7 +100,7 @@ class CLIPVisionToPhi(nn.Module):
         if labels is not None:
             loss = self.loss(
                 logits,
-                labels
+                labels.to(device)
             )
 
             return dict(logits=logits, loss=loss)
