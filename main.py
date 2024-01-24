@@ -59,6 +59,8 @@ def train_vision_projector():
 
 #train_vision_projector()
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
+train_dl  = get_dataloaders(extra['data_dir'], tokenizer, train_only=True)
+
 
 model_config = CLIPVisionToPhiConfig(
     vision_projector_config=VisionProjectorConfig(),
@@ -84,8 +86,6 @@ model = model.to(device)
 total_epochs = extra['num_epochs']
 
 epoch_loss = []
-
-train_dl  = get_dataloaders(extra['data_dir'], tokenizer, train_only=True)
 
 optimizer = optim.Adam(filter(lambda p: p.requires_grad, model.parameters()), lr=0.001)
 epoch = 0
