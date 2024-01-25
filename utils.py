@@ -2,6 +2,7 @@ from constants import *
 import torch
 import torch.nn.functional as F
 
+device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
 def tokenizer_image_token(prompt, tokenizer, image_token_index=IMAGE_TOKEN_INDEX, return_tensors=None):
     prompt_chunks = [tokenizer(chunk).input_ids for chunk in prompt.split('<image>')]
@@ -70,11 +71,10 @@ def generate_output(model, tokenizer, length, input_ids=None, image_features=Non
 
     model.eval()
 
-    print(inputs_embeds.size())
     ie_size = inputs_embeds.size(1)
     inputs = inputs_embeds
-    predicted_tokens = torch.tensor([[]])
-    predicted_token_logits = torch.tensor([[[]]])
+    predicted_tokens = torch.tensor([[]]).to(device)
+    predicted_token_logits = torch.tensor([[[]]]).to(device)
     out = {}
     with torch.no_grad():
         if labels is None:
@@ -89,7 +89,7 @@ def generate_output(model, tokenizer, length, input_ids=None, image_features=Non
                 predicted_tokens = torch.cat((predicted_tokens, next_token), dim=1)
 
                 next_token_embed = model.text_embedding(next_token)
-                inputs = torch.cat((inputs, next_token_embed), dim=1)
+                inputs = torch.cat((inputs, next_token_embed.to(device)), dim=1)
 
             out['pred'] = tokenizer.decode(predicted_tokens)
             out['logits'] = logits
