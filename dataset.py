@@ -75,9 +75,10 @@ class ImageFeatureToGenTextDataset(Dataset):
 
         labels = torch.stack(
             (
-                labels,
-                self.tokenizer.eos_token_id,
-                self.tokenizer.pad_token_id*pad_token_count),
+                torch.tensor(labels),
+                torch.tensor(self.tokenizer.eos_token_id),
+                torch.tensor([self.tokenizer.pad_token_id] * pad_token_count)
+            ),
             dim=0
         )
 
@@ -161,9 +162,10 @@ class LiveImageToGenTextDataset(Dataset):
 
         labels = torch.stack(
             (
-                labels,
-                self.tokenizer.eos_token_id,
-                self.tokenizer.pad_token_id * pad_token_count),
+                torch.tensor(labels),
+                torch.tensor(self.tokenizer.eos_token_id),
+                torch.tensor([self.tokenizer.pad_token_id] * pad_token_count)
+            ),
             dim=0
         )
 
