@@ -74,7 +74,7 @@ def generate_output(model, tokenizer, length, input_ids=None, image_features=Non
     ie_size = inputs_embeds.size(1)
     inputs = inputs_embeds
     predicted_tokens = torch.tensor([[]]).to(device)
-    predicted_token_logits = torch.tensor([[[]]]).to(device)
+    predicted_token_logits = torch.tensor([[]]).to(device)
     out = {}
     with torch.no_grad():
         if labels is None:
