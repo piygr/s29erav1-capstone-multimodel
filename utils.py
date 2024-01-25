@@ -127,9 +127,9 @@ def generate_output(model, tokenizer, length, input_ids=None, image_features=Non
             print("predicted_token_logits: ", predicted_token_logits.size())
             print("labels: ", labels.size())
             assert predicted_token_logits.size(1) == labels.size(1)
-
+            labels = labels.type(torch.LongTensor).to(device)
             loss = model.loss(predicted_token_logits.contiguous().view(-1, predicted_token_logits.size(-1)),
-                              labels.contiguous().view(-1).to(device))
+                              labels.contiguous().view(-1) )
 
             out = dict(pred=tokenizer.decode(predicted_tokens),
                        loss=loss,
