@@ -29,13 +29,14 @@ class ImageFeatureToGenTextDataset(Dataset):
 
         sep_token = ' caption: '
 
-        self.image_prefix = 'COCO_val2014_'
+        self.directory = 'val2014'
         if train:
-            self.image_prefix = 'COCO_train2014_'
+            self.directory = 'train2014'
 
         with open(image_indices_file, 'r') as f:
-            image_indices_json = json.load(f)
-            self.image_ids = [int(id.replace(self.image_prefix, '').split('.')[0]) for id in image_indices_json]
+            prefix = 'COCO_%s_' % self.directory
+            self.image_indices_json = json.load(f)
+            image_ids = [int(id.replace(prefix, '').split('.')[0]) for id in self.image_indices_json]
             self.image_ids_dict = {image_id: idx for idx, image_id in enumerate(self.image_ids)}
 
         self.image_feature = np.load(image_feature_file)
@@ -57,6 +58,7 @@ class ImageFeatureToGenTextDataset(Dataset):
         image_id = caption_dict.get('image_id')
         image_index = self.image_ids_dict.get(image_id)
         image_feature = torch.from_numpy( self.image_feature[image_index] )
+        image_url = 'http://images.cocodataset.org/%s/%s' % (self.directory, self.image_indices_json[image_index])
 
         prompt = '<image> caption: ' + caption_dict.get('caption') + self.tokenizer.eos_token
 
@@ -72,7 +74,8 @@ class ImageFeatureToGenTextDataset(Dataset):
         return dict(
             image_features=image_feature,
             input_ids=token_ids,
-            labels=labels
+            labels=labels,
+            image_urls=image_url
         )
 
 

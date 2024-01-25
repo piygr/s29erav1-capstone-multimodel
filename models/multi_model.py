@@ -79,9 +79,9 @@ class CLIPVisionToPhi(nn.Module):
 
         new_input_embeds = torch.stack(new_input_embeds, dim=0)
 
-        print('image->', image_embeds.size())
-        print('input->', new_input_embeds.size())
-        print('label->', new_labels.size())
+        #print('image->', image_embeds.size())
+        #print('input->', new_input_embeds.size())
+        #print('label->', new_labels.size())
 
         return new_input_embeds, new_labels
 
