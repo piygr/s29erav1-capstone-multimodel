@@ -119,7 +119,7 @@ def generate_output(model, tokenizer, length, input_ids=None, image_features=Non
                 tf_token_embed = model.text_embedding(tf_token)
 
                 inputs = torch.cat((inputs, tf_token_embed), dim=1)  # Add the token to the generated text
-                print("inputs: ", inputs.size())
+                #print("inputs: ", inputs.size())
 
             predicted_tokens = torch.cat([x.unsqueeze(1) for x in predicted_tokens], dim=1).to(device)
             predicted_token_logits = torch.cat([x.unsqueeze(1) for x in predicted_token_logits], dim=1).to(device)
@@ -129,7 +129,7 @@ def generate_output(model, tokenizer, length, input_ids=None, image_features=Non
             assert predicted_token_logits.size(1) == labels.size(1)
 
             loss = model.loss(predicted_token_logits.contiguous().view(-1, predicted_token_logits.size(-1)),
-                              labels.contiguous().view(-1))
+                              labels.contiguous().view(-1).to(device))
 
             out = dict(pred=tokenizer.decode(predicted_tokens),
                        loss=loss,
