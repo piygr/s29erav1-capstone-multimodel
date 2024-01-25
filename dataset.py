@@ -64,8 +64,8 @@ class ImageFeatureToGenTextDataset(Dataset):
 
         token_ids = torch.tensor(tokenizer_image_token(prompt, tokenizer=self.tokenizer))
 
-        labels = self.tokenizer.decode(caption_dict.get('caption') + self.tokenizer.eos_token)
-        labels = self.tokenizer(labels)
+        labels = self.tokenizer.encode(caption_dict.get('caption') + self.tokenizer.eos_token)
+        labels = torch.tensor(labels)
 
         '''parts = prompt.split(' caption: ')
         non_caption_label = parts[0] + ' caption: '
@@ -136,8 +136,8 @@ class LiveImageToGenTextDataset(Dataset):
 
         token_ids = torch.tensor(tokenizer_image_token(prompt, tokenizer=self.tokenizer))
 
-        labels = self.tokenizer.decode(caption_dict.get('caption') + self.tokenizer.eos_token)
-        labels = self.tokenizer(labels)
+        labels = self.tokenizer.encode(caption_dict.get('caption') + self.tokenizer.eos_token)
+        labels = torch.tensor(labels)
 
         '''parts = prompt.split(' caption: ')
         non_caption_label = parts[0] + ' caption: '
