@@ -113,7 +113,7 @@ def generate_output(model, tokenizer, length, input_ids=None, image_features=Non
 
 
             assert predicted_token_logits.size(1) == labels.size(1)
-            
+
             loss = model.loss(predicted_token_logits.contiguous().view(-1, predicted_token_logits.size(-1)),
                               labels.contiguous().view(-1))
 

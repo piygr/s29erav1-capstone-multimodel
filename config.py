@@ -148,16 +148,15 @@ class MultiInstructModelConfig(PretrainedConfig):
 
 
 extra = dict(
-    num_epochs=15,
+    num_epochs=1,
     resume=False,
-    data_dir='./data',
-    phi_path="../drive/MyDrive/Capstone/s29erav1-capstone-multimodel/phi2",
+    data_dir='../data',
     checkpoint_dir='../checkpoints',
     max_seqlen=100,
-    batch_size=1,
+    batch_size=2,
     live_image_processing=True,
     vision_projector_file='/Users/piyushgrover/Downloads/old_vt_proj/vp_ckpt_0.pth',
-    validation_phase=True
+    validation_phase=False
 )
 
 qlora_config = dict(

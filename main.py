@@ -107,8 +107,6 @@ else:
     model.vision_projector.train()
     print('---->>>>> Training logs <<<<<-----')
     for epoch in range(epoch, total_epochs):
-        #data_iter = iter(train_dl)
-        #train_batch = next(data_iter)
         for batch_idx, train_batch in enumerate(train_dl):
             optimizer.zero_grad()
             image_features = train_batch['image_features']
