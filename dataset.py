@@ -146,7 +146,7 @@ class LiveImageToGenTextDataset(Dataset):
             image_features=image_feature,
             input_ids=token_ids,
             labels=labels,
-            image_url=image_url
+            image_urls=image_url
         )
 
 

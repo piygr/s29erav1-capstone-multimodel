@@ -17,6 +17,7 @@ class QnAInstructDataset(Dataset):
         super().__init__()
 
         self.instruct_data = []
+        seps = ['\n', '<|endoftext|>']
         with open(instruct_file, 'r') as f:
             instruct_json = json.load(f)
             for idx, inst in enumerate(instruct_json):
@@ -31,10 +32,10 @@ class QnAInstructDataset(Dataset):
                         text = ''
 
                         if role == 'human':
-                            text += 'Human###' + msg + '\n'
+                            text += 'Human### ' + msg + seps[0]
                     else:
                         if role == 'gpt' and text and inst.get('caption', ''):
-                            text += 'AI###' + msg + '\n'
+                            text += 'AI### ' + msg + seps[1]
 
                             instruct_dict = dict(
                                 image_index=image_index,

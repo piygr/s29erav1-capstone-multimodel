@@ -6,7 +6,7 @@ from transformers import AutoTokenizer
 from config import extra
 from dataset import get_dataloaders, ImageFeatureToGenTextDataset
 from models.multi_model import CLIPVisionToPhi
-
+from utils import generate_text
 import torch
 
 
@@ -122,6 +122,7 @@ else:
                     labels=labels
                 )
 
+                logits = output['logits']
                 loss = output['loss']
                 loss.backward()
 
@@ -130,7 +131,7 @@ else:
             if step_count == -1:
                 print('Epoch:', '%04d' % (epoch + 1), 'loss =', '{:.6f}'.format(loss.item()))
 
-            elif step_count % 1000 == 0:
+            elif step_count % 100 == 0:
                 print('\t\t', '-- %s step loss ='%step_count, '{:.6f}'.format(loss.item()))
                 a = torch.tensor(epoch_loss, dtype=torch.float16)
                 torch.save({
@@ -140,6 +141,9 @@ else:
                     'loss': a.mean(),
                     step_count: step_count,
                 }, '%s/vp_ckpt_%s.pth' % (extra['checkpoint_dir'], epoch))
+
+                #print('pred: ', generate_text(model, logits, ) )
+                #tokenizer.decode()
 
             step_count += 1
 
