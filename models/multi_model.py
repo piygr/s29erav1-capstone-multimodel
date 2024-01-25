@@ -107,17 +107,18 @@ class CLIPVisionToPhi(nn.Module):
 
         logits = x['logits']
 
+        loss = None
+
         if labels is not None:
             loss = self.loss(
                 logits,
                 labels.to(device)
             )
 
-            return dict(logits=logits, loss=loss)
+        return dict(logits=logits, loss=loss, inputs_embeds=input_embeds)
 
-        return logits
 
-    def generate(self,
+    '''def generate(self,
                  prompt='<image> caption: ',
                  image_features=None):
 
@@ -127,7 +128,7 @@ class CLIPVisionToPhi(nn.Module):
             image_embeds,
             input_ids.unsqueeze(0)
         )
-        return self.phi_model.generate(inputs_embeds=input_embeds)
+        return self.phi_model.generate(inputs_embeds=input_embeds)'''
 
 
 class CausalLMLoss(nn.Module):

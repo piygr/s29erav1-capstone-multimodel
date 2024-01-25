@@ -62,30 +62,32 @@ def get_image_feature_for_vision_projector(image_url):
 '''
 
 
-def generate_text(model, length, tokenizer, input_ids=None, image_features=None, temperature=1, top_k=0, top_p=0.0):
-    if image_features is None or input_ids is None:
+def generate_text(model, tokenizer, length, input_ids=None, image_features=None, inputs_embeds=None, labels=None, temperature=1, top_k=0, top_p=0.0):
+    if inputs_embeds is None and (image_features is None or input_ids is None):
         print("image_features or input_ids missing.. returning")
         return
 
     model.eval()
+
     #context = torch.tensor(context, dtype=torch.long)
     #context = context.unsqueeze(0)
-    generated = torch.tensor([[]])
+    generated = inputs_embeds
+    generated_tokens = []
     with torch.no_grad():
-        for _ in range(length):
-            image_embeds = model.vision_projector(image_features)
-            input_embeds, _ = model.prepare_input_labels(
-                image_embeds,
-                input_ids
-            )
+        if labels is None:
+            pass
+        else:
+            #traverse_len = labels.size(1) - inputs_embeds.size(1)
+            for _ in range(length):
+                outputs = model.phi_model(inputs_embeds=generated)
+                logits = outputs['logits']
+                next_token_logits = logits[:, -1, :] / temperature  # Apply temperature
+                filtered_logits = top_k_top_p_filtering(next_token_logits, top_k=top_k, top_p=top_p)  # Apply top-k and/or top-p
+                next_token = torch.multinomial(F.softmax(filtered_logits, dim=-1), num_samples=1)  # Sample
+                next_token_embed = model.text_embedding(next_token)
+                generated = torch.cat((generated, next_token_embed), dim=1)  # Add the token to the generated text
+                generated_tokens.append(next_token)
 
-            outputs = model.phi_model(inputs_embeds=input_embeds)  # Get logits
-            next_token_logits = outputs[0][:, -1, :] / temperature  # Apply temperature
-            filtered_logits = top_k_top_p_filtering(next_token_logits, top_k=top_k, top_p=top_p)  # Apply top-k and/or top-p
-            next_token = torch.multinomial(F.softmax(filtered_logits, dim=-1), num_samples=1)  # Sample
-            generated = torch.cat((generated, next_token), dim=1)  # Add the token to the generated text
-            if next_token == tokenizer.eos_token_id:
-                break
-
+    generated_tokens = torch.stack(generated_tokens, dim=0)
     model.train()
-    return tokenizer.decode(generated[0])
+    return generated_tokens
