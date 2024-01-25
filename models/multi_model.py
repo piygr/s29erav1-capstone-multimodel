@@ -7,6 +7,7 @@ from models.phi2.custom_modeling_phi import PhiForCausalLM
 from models.vision_projector_model import VisionProjector
 from transformers import AutoModelForCausalLM
 from config import extra
+from utils import tokenizer_image_token
 
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
@@ -115,6 +116,18 @@ class CLIPVisionToPhi(nn.Module):
             return dict(logits=logits, loss=loss)
 
         return logits
+
+    def generate(self,
+                 prompt='<image> caption: ',
+                 image_features=None):
+
+        image_embeds = self.vision_projector(image_features)
+        input_ids = torch.tensor(tokenizer_image_token(prompt, tokenizer=self.tokenizer))
+        input_embeds, labels = self.prepare_input_labels(
+            image_embeds,
+            input_ids
+        )
+        return self.phi_model.generate(inputs_embeds=input_embeds)
 
     '''
     def forward(self,

@@ -126,7 +126,7 @@ class LiveImageToGenTextDataset(Dataset):
         image = Image.open(requests.get(image_url, stream=True).raw)
         inputs = self.processor(images=image, return_tensors="pt")
         x = self.model(**inputs, output_hidden_states=True)
-        image_feature = x.hidden_states[-2][:, 1:].squeeze(0).cpu().detach()
+        image_feature = x.hidden_states[-2][:, 1:].squeeze(0).cpu().detach()    #49 768
 
         prompt = '<image> caption: ' + caption_dict.get('caption') + self.tokenizer.eos_token
 
@@ -142,7 +142,8 @@ class LiveImageToGenTextDataset(Dataset):
         return dict(
             image_features=image_feature,
             input_ids=token_ids,
-            labels=labels
+            labels=labels,
+            image_url=image_url
         )
 
 

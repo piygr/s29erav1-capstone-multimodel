@@ -155,7 +155,9 @@ extra = dict(
     checkpoint_dir='../checkpoints',
     max_seqlen=100,
     batch_size=1,
-    live_image_processing=True
+    live_image_processing=True,
+    vision_projector_file='/Users/piyushgrover/Downloads/old_vt_proj/vp_ckpt_0.pth',
+    validation_phase=True
 )
 
 qlora_config = dict(
