@@ -69,8 +69,6 @@ def generate_output(model, tokenizer, length, input_ids=None, image_features=Non
         print("image_features or input_ids missing.. returning")
         return
 
-    model.eval()
-
     ie_size = inputs_embeds.size(1) - 1
     print('ie_size: ', ie_size)
     inputs = inputs_embeds
@@ -78,8 +76,8 @@ def generate_output(model, tokenizer, length, input_ids=None, image_features=Non
 
     label_size = labels.size(1)
     out = {}
-    with torch.no_grad():
-        if labels is None:
+    if labels is None:
+        with torch.no_grad():
             for idx in range(length):
                 outputs = model.phi_model(inputs_embeds=inputs)
                 logits = outputs['logits']
@@ -100,42 +98,44 @@ def generate_output(model, tokenizer, length, input_ids=None, image_features=Non
             predicted_tokens = torch.cat([x.unsqueeze(1) for x in predicted_tokens], dim=1)
             out['pred'] = predicted_tokens
             out['logits'] = logits
-        else:
+
+            return out
+    else:
             # traverse_len = labels.size(1) - inputs_embeds.size(1)
-            for idx in range(length):
-                outputs = model.phi_model(inputs_embeds=inputs)
-                logits = outputs['logits']
-                next_token_logits = logits[:, -1, :] / temperature  # Apply temperature
+        for idx in range(length):
+            outputs = model.phi_model(inputs_embeds=inputs)
+            logits = outputs['logits']
+            next_token_logits = logits[:, -1, :] / temperature  # Apply temperature
 
-                filtered_logits = top_k_top_p_filtering(next_token_logits, top_k=top_k,
-                                                        top_p=top_p)  # Apply top-k and/or top-p
-                next_token = torch.multinomial(F.softmax(filtered_logits, dim=-1), num_samples=1)  # Sample
+            filtered_logits = top_k_top_p_filtering(next_token_logits, top_k=top_k,
+                                                    top_p=top_p)  # Apply top-k and/or top-p
+            next_token = torch.multinomial(F.softmax(filtered_logits, dim=-1), num_samples=1)  # Sample
 
-                predicted_tokens.append(next_token)
+            predicted_tokens.append(next_token)
 
-                tf_token = labels[:, idx : idx+1 ].to(device)
-                tf_token_embed = model.text_embedding(tf_token)
+            tf_token = labels[:, idx : idx+1 ].to(device)
+            tf_token_embed = model.text_embedding(tf_token)
 
-                inputs = torch.cat((inputs, tf_token_embed), dim=1)  # Add the token to the generated text
+            inputs = torch.cat((inputs, tf_token_embed), dim=1)  # Add the token to the generated text
 
-            predicted_tokens = torch.cat([x.unsqueeze(1) for x in predicted_tokens], dim=1).to(device)
-            #predicted_token_logits = torch.cat([x.unsqueeze(1) for x in predicted_token_logits], dim=1).to(device)
+        predicted_tokens = torch.cat([x.unsqueeze(1) for x in predicted_tokens], dim=1).to(device)
+        #predicted_token_logits = torch.cat([x.unsqueeze(1) for x in predicted_token_logits], dim=1).to(device)
 
-            print("logits: ", logits.size())
-            print("labels: ", labels.size())
-            #assert predicted_token_logits.size(1) == labels.size(1)
-            labels = labels.type(torch.LongTensor).to(device)
+        print("logits: ", logits.size())
+        print("labels: ", labels.size())
+        #assert predicted_token_logits.size(1) == labels.size(1)
+        labels = labels.type(torch.LongTensor).to(device)
 
-            logits = logits[:, ie_size:ie_size+label_size, :] #.contiguous()
-            #labels = labels.contiguous()
+        logits = logits[:, ie_size:ie_size+label_size, :] #.contiguous()
+        #labels = labels.contiguous()
 
-            loss = model.loss(logits,
-                              labels )
+        loss = model.loss(logits,
+                          labels)
 
-            out = dict(pred=predicted_tokens,
-                       loss=loss,
-                       logits=logits)
+        out = dict(pred=predicted_tokens,
+                   loss=loss,
+                   logits=logits)
 
-    model.train()
+        #model.train()
 
-    return out
+        return out
