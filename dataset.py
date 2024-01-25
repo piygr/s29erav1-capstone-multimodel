@@ -76,7 +76,7 @@ class ImageFeatureToGenTextDataset(Dataset):
         labels = torch.cat(
             [
                 torch.tensor(labels, dtype=torch.int32),
-                torch.tensor(self.tokenizer.eos_token_id, dtype=torch.int32),
+                torch.tensor([self.tokenizer.eos_token_id], dtype=torch.int32),
                 torch.tensor([self.tokenizer.pad_token_id] * pad_token_count, dtype=torch.int32)
             ],
             dim=0
@@ -160,10 +160,11 @@ class LiveImageToGenTextDataset(Dataset):
             truncate_len = extra['max_seqlen'] - token_ids.size(0) - 1
             labels = labels[:truncate_len]
 
+        print(labels)
         labels = torch.cat(
             [
                 torch.tensor(labels, dtype=torch.int32),
-                torch.tensor(self.tokenizer.eos_token_id, dtype=torch.int32),
+                torch.tensor([self.tokenizer.eos_token_id], dtype=torch.int32),
                 torch.tensor([self.tokenizer.pad_token_id] * pad_token_count, dtype=torch.int32)
             ],
             dim=0
