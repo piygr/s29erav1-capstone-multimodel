@@ -126,12 +126,12 @@ def generate_output(model, tokenizer, length, input_ids=None, image_features=Non
             #assert predicted_token_logits.size(1) == labels.size(1)
             labels = labels.type(torch.LongTensor).to(device)
 
-            logits = logits[..., ie_size:ie_size+label_size, :]
+            logits = logits[..., ie_size:ie_size+label_size, :].contiguous()
+            labels = labels.contiguous()
+
             loss = model.loss(logits.view(-1, logits.size(-1)),
                               labels.view(-1) )
 
-            print("logits: ", logits.size())
-            print("labels: ", labels.size())
             out = dict(pred=predicted_tokens,
                        loss=loss,
                        logits=logits)
