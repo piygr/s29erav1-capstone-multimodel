@@ -60,16 +60,17 @@ class ImageFeatureToGenTextDataset(Dataset):
         image_feature = torch.from_numpy( self.image_feature[image_index] )
         image_url = 'http://images.cocodataset.org/%s/%s' % (self.directory, self.image_indices_json[image_index])
 
-        prompt = '<image> caption: ' + caption_dict.get('caption') + self.tokenizer.eos_token
+        prompt = '<image> caption: '
 
         token_ids = torch.tensor(tokenizer_image_token(prompt, tokenizer=self.tokenizer))
 
-        labels = token_ids.clone()
+        labels = self.tokenizer.decode(caption_dict.get('caption') + self.tokenizer.eos_token)
+        labels = self.tokenizer(labels)
 
-        parts = prompt.split(' caption: ')
+        '''parts = prompt.split(' caption: ')
         non_caption_label = parts[0] + ' caption: '
         non_caption_token_length = len( tokenizer_image_token(non_caption_label, tokenizer=self.tokenizer) )
-        labels[0: non_caption_token_length] = IGNORE_INDEX
+        labels[0: non_caption_token_length] = IGNORE_INDEX'''
 
         return dict(
             image_features=image_feature,
@@ -131,16 +132,17 @@ class LiveImageToGenTextDataset(Dataset):
         x = self.model(**inputs, output_hidden_states=True)
         image_feature = x.hidden_states[-2][:, 1:].squeeze(0).cpu().detach()    #49 768
 
-        prompt = '<image> caption: ' + caption_dict.get('caption') + self.tokenizer.eos_token
+        prompt = '<image> caption: '
 
         token_ids = torch.tensor(tokenizer_image_token(prompt, tokenizer=self.tokenizer))
 
-        labels = token_ids.clone()
+        labels = self.tokenizer.decode(caption_dict.get('caption') + self.tokenizer.eos_token)
+        labels = self.tokenizer(labels)
 
-        parts = prompt.split(' caption: ')
+        '''parts = prompt.split(' caption: ')
         non_caption_label = parts[0] + ' caption: '
         non_caption_token_length = len( tokenizer_image_token(non_caption_label, tokenizer=self.tokenizer) )
-        labels[0: non_caption_token_length] = IGNORE_INDEX
+        labels[0: non_caption_token_length] = IGNORE_INDEX'''
 
         return dict(
             image_features=image_feature,

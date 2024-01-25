@@ -6,7 +6,7 @@ from transformers import AutoTokenizer
 from config import extra
 from dataset import get_dataloaders, ImageFeatureToGenTextDataset
 from models.multi_model import CLIPVisionToPhi
-from utils import generate_text
+from utils import generate_output
 import torch
 
 
@@ -142,7 +142,8 @@ else:
                     step_count: step_count,
                 }, '%s/vp_ckpt_%s.pth' % (extra['checkpoint_dir'], epoch))
 
-                #print('pred: ', generate_text(model, logits, ) )
+                print('pred: ', output['pred'][0] )
+                print('label: ', tokenizer.decode(labels[0]))
                 #tokenizer.decode()
 
             step_count += 1

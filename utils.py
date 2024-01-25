@@ -62,32 +62,67 @@ def get_image_feature_for_vision_projector(image_url):
 '''
 
 
-def generate_text(model, tokenizer, length, input_ids=None, image_features=None, inputs_embeds=None, labels=None, temperature=1, top_k=0, top_p=0.0):
+def generate_output(model, tokenizer, length, input_ids=None, image_features=None, inputs_embeds=None, labels=None,
+                    temperature=1, top_k=0, top_p=0.0):
     if inputs_embeds is None and (image_features is None or input_ids is None):
         print("image_features or input_ids missing.. returning")
         return
 
     model.eval()
 
-    #context = torch.tensor(context, dtype=torch.long)
-    #context = context.unsqueeze(0)
-    generated = inputs_embeds
-    generated_tokens = []
+    print(inputs_embeds.size())
+    ie_size = inputs_embeds.size(1)
+    inputs = inputs_embeds
+    predicted_tokens = torch.tensor([[]])
+    predicted_token_logits = torch.tensor([[[]]])
+    out = {}
     with torch.no_grad():
         if labels is None:
-            pass
-        else:
-            #traverse_len = labels.size(1) - inputs_embeds.size(1)
-            for _ in range(length):
-                outputs = model.phi_model(inputs_embeds=generated)
+            for idx in range(length):
+                outputs = model.phi_model(inputs_embeds=inputs)
                 logits = outputs['logits']
                 next_token_logits = logits[:, -1, :] / temperature  # Apply temperature
-                filtered_logits = top_k_top_p_filtering(next_token_logits, top_k=top_k, top_p=top_p)  # Apply top-k and/or top-p
+                filtered_logits = top_k_top_p_filtering(next_token_logits, top_k=top_k,
+                                                        top_p=top_p)  # Apply top-k and/or top-p
                 next_token = torch.multinomial(F.softmax(filtered_logits, dim=-1), num_samples=1)  # Sample
-                next_token_embed = model.text_embedding(next_token)
-                generated = torch.cat((generated, next_token_embed), dim=1)  # Add the token to the generated text
-                generated_tokens.append(next_token)
 
-    generated_tokens = torch.stack(generated_tokens, dim=0)
+                predicted_tokens = torch.cat((predicted_tokens, next_token), dim=1)
+
+                next_token_embed = model.text_embedding(next_token)
+                inputs = torch.cat((inputs, next_token_embed), dim=1)
+
+            out['pred'] = tokenizer.decode(predicted_tokens)
+            out['logits'] = logits
+
+        else:
+            # traverse_len = labels.size(1) - inputs_embeds.size(1)
+            for idx in range(length):
+                outputs = model.phi_model(inputs_embeds=inputs)
+                logits = outputs['logits']
+                next_token_logits = logits[:, -1, :] / temperature  # Apply temperature
+                filtered_logits = top_k_top_p_filtering(next_token_logits, top_k=top_k,
+                                                        top_p=top_p)  # Apply top-k and/or top-p
+                next_token = torch.multinomial(F.softmax(filtered_logits, dim=-1), num_samples=1)  # Sample
+
+                predicted_tokens = torch.cat((predicted_tokens, next_token), dim=1)
+                predicted_token_logits = torch.cat((predicted_token_logits, next_token_logits), dim=1)
+
+                tf_token = labels[:, idx : idx+1 ]
+                tf_token_embed = model.text_embedding(tf_token)
+                inputs = torch.cat((inputs, tf_token_embed), dim=1)  # Add the token to the generated text
+
+
+            assert predicted_token_logits.size(1) == labels.size(1)
+            
+            loss = model.loss(predicted_token_logits.contiguous().view(-1, predicted_token_logits.size(-1)),
+                              labels.contiguous().view(-1))
+
+            predicted_tokens = torch.stack((predicted_tokens,), dim=0)
+
+            out = dict(pred=tokenizer.decode(predicted_tokens),
+                       loss=loss,
+                       logits=logits)
+
     model.train()
-    return generated_tokens
+
+    return out

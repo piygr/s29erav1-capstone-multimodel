@@ -7,7 +7,7 @@ from models.phi2.custom_modeling_phi import PhiForCausalLM
 from models.vision_projector_model import VisionProjector
 from transformers import AutoModelForCausalLM
 from config import extra
-from utils import tokenizer_image_token
+from utils import tokenizer_image_token, generate_output
 
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
@@ -30,7 +30,7 @@ class CLIPVisionToPhi(nn.Module):
         self.text_embedding = self.phi_model.get_input_embeddings()
         self.tokenizer = self.config.tokenizer
 
-        self.loss = CausalLMLoss()
+        self.loss = nn.CrossEntropyLoss()
 
         if self.config.freeze_phi_model:
             for param in self.phi_model.parameters():
@@ -44,14 +44,15 @@ class CLIPVisionToPhi(nn.Module):
                              labels=None):
 
         new_input_embeds = []
-        new_labels = []
+        new_labels = labels
         for batch_idx, cur_input_ids in enumerate(input_ids):
             image_token_indices = torch.where(cur_input_ids == IMAGE_TOKEN_INDEX)[0]
             cur_new_input_embeds = []
-            if labels is not None:
+
+            '''if labels is not None:
                 cur_labels = labels[batch_idx]
                 cur_new_labels = []
-                assert cur_labels.shape == cur_input_ids.shape
+                assert cur_labels.shape == cur_input_ids.shape'''
 
             image_token_start = image_token_indices[0]
 
@@ -62,7 +63,7 @@ class CLIPVisionToPhi(nn.Module):
             cur_new_input_embeds = torch.cat(cur_new_input_embeds, dim=0)
 
             new_input_embeds.append(cur_new_input_embeds)
-            if labels is not None:
+            '''if labels is not None:
                 cur_new_labels.append(cur_labels[:image_token_start])
                 cur_new_labels.append(
                     torch.full((image_embeds[batch_idx].shape[0],), IGNORE_INDEX, device=labels.device,
@@ -75,13 +76,10 @@ class CLIPVisionToPhi(nn.Module):
 
                 new_labels = torch.stack(new_labels, dim=0)
             else:
-                new_labels = None
+                new_labels = None'''
 
         new_input_embeds = torch.stack(new_input_embeds, dim=0)
 
-        #print('image->', image_embeds.size())
-        #print('input->', new_input_embeds.size())
-        #print('label->', new_labels.size())
 
         return new_input_embeds, new_labels
 
@@ -100,22 +98,13 @@ class CLIPVisionToPhi(nn.Module):
             labels=labels
         )
 
-        x = self.phi_model(
-            inputs_embeds=input_embeds
-        )
+        return generate_output(self,
+                               self.tokenizer,
+                               extra['max_seqlen'],
+                               inputs_embeds=input_embeds,
+                               labels=labels)
 
-
-        logits = x['logits']
-
-        loss = None
-
-        if labels is not None:
-            loss = self.loss(
-                logits,
-                labels.to(device)
-            )
-
-        return dict(logits=logits, loss=loss, inputs_embeds=input_embeds)
+        #return dict(logits=logits, loss=loss, inputs_embeds=input_embeds)
 
 
     '''def generate(self,
