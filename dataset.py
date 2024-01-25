@@ -37,7 +37,7 @@ class ImageFeatureToGenTextDataset(Dataset):
             prefix = 'COCO_%s_' % self.directory
             self.image_indices_json = json.load(f)
             image_ids = [int(id.replace(prefix, '').split('.')[0]) for id in self.image_indices_json]
-            self.image_ids_dict = {image_id: idx for idx, image_id in enumerate(self.image_ids)}
+            self.image_ids_dict = {image_id: idx for idx, image_id in enumerate(image_ids)}
 
         self.image_feature = np.load(image_feature_file)
 
