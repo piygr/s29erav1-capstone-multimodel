@@ -72,6 +72,7 @@ def generate_output(model, tokenizer, length, input_ids=None, image_features=Non
     model.eval()
 
     ie_size = inputs_embeds.size(1) - 1
+    print('ie_size: ', ie_size)
     inputs = inputs_embeds
     predicted_tokens = [] #torch.tensor([[]]).to(device)
 
@@ -111,16 +112,11 @@ def generate_output(model, tokenizer, length, input_ids=None, image_features=Non
                 next_token = torch.multinomial(F.softmax(filtered_logits, dim=-1), num_samples=1)  # Sample
 
                 predicted_tokens.append(next_token)
-                #print("predicted_tokens: ", predicted_tokens.size())
-
-                #predicted_token_logits.append(next_token_logits)
-                #print("predicted_token_logits: ", predicted_token_logits.size())
 
                 tf_token = labels[:, idx : idx+1 ].to(device)
                 tf_token_embed = model.text_embedding(tf_token)
 
                 inputs = torch.cat((inputs, tf_token_embed), dim=1)  # Add the token to the generated text
-                #print("inputs: ", inputs.size())
 
             predicted_tokens = torch.cat([x.unsqueeze(1) for x in predicted_tokens], dim=1).to(device)
             #predicted_token_logits = torch.cat([x.unsqueeze(1) for x in predicted_token_logits], dim=1).to(device)
@@ -130,8 +126,8 @@ def generate_output(model, tokenizer, length, input_ids=None, image_features=Non
             #assert predicted_token_logits.size(1) == labels.size(1)
             labels = labels.type(torch.LongTensor).to(device)
 
-
-            loss = model.loss(logits[:, ie_size:ie_size+label_size].contiguous().view(-1, logits.size(-1)),
+            logits = logits[..., ie_size:ie_size+label_size, :].contiguous()
+            loss = model.loss(logits.view(-1, logits.size(-1)),
                               labels.contiguous().view(-1) )
 
             out = dict(pred=predicted_tokens,
