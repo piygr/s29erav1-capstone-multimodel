@@ -129,7 +129,7 @@ else:
             if step_count == -1:
                 print('Epoch:', '%04d' % (epoch + 1), 'loss =', '{:.6f}'.format(loss.item()))
 
-            elif step_count % 100 == 0:
+            elif step_count % 2 == 0:
                 print('\t\t', '-- %s step loss ='%step_count, '{:.6f}'.format(loss.item()))
                 a = torch.tensor(epoch_loss, dtype=torch.float16)
                 torch.save({

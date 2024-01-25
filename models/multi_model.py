@@ -30,7 +30,7 @@ class CLIPVisionToPhi(nn.Module):
         self.text_embedding = self.phi_model.get_input_embeddings()
         self.tokenizer = self.config.tokenizer
 
-        self.loss = nn.CrossEntropyLoss()
+        self.loss = CausalLMLoss()
 
         if self.config.freeze_phi_model:
             for param in self.phi_model.parameters():
