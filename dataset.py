@@ -62,7 +62,7 @@ class ImageFeatureToGenTextDataset(Dataset):
 
         prompt = '<image> caption: '
 
-        token_ids = torch.tensor(tokenizer_image_token(prompt, tokenizer=self.tokenizer))
+        token_ids = torch.tensor(tokenizer_image_token(prompt, tokenizer=self.tokenizer), dtype=torch.int32)
 
         labels = self.tokenizer.encode(caption_dict.get('caption'))
         #labels = torch.tensor(labels)
@@ -75,9 +75,9 @@ class ImageFeatureToGenTextDataset(Dataset):
 
         labels = torch.cat(
             [
-                torch.tensor(labels),
-                torch.tensor(self.tokenizer.eos_token_id),
-                torch.tensor([self.tokenizer.pad_token_id] * pad_token_count)
+                torch.tensor(labels, dtype=torch.int32),
+                torch.tensor(self.tokenizer.eos_token_id, dtype=torch.int32),
+                torch.tensor([self.tokenizer.pad_token_id] * pad_token_count, dtype=torch.int32)
             ],
             dim=0
         )
@@ -149,7 +149,7 @@ class LiveImageToGenTextDataset(Dataset):
 
         prompt = '<image> caption: '
 
-        token_ids = torch.tensor(tokenizer_image_token(prompt, tokenizer=self.tokenizer))
+        token_ids = torch.tensor(tokenizer_image_token(prompt, tokenizer=self.tokenizer), dtype=torch.int32)
 
         labels = self.tokenizer.encode(caption_dict.get('caption'))
         # labels = torch.tensor(labels)
@@ -162,9 +162,9 @@ class LiveImageToGenTextDataset(Dataset):
 
         labels = torch.cat(
             [
-                torch.tensor(labels),
-                torch.tensor(self.tokenizer.eos_token_id),
-                torch.tensor([self.tokenizer.pad_token_id] * pad_token_count)
+                torch.tensor(labels, dtype=torch.int32),
+                torch.tensor(self.tokenizer.eos_token_id, dtype=torch.int32),
+                torch.tensor([self.tokenizer.pad_token_id] * pad_token_count, dtype=torch.int32)
             ],
             dim=0
         )
