@@ -70,7 +70,7 @@ def generate_output(model, tokenizer, length, input_ids=None, image_features=Non
         return
 
     ie_size = inputs_embeds.size(1) - 1
-    print('ie_size: ', ie_size)
+    #print('ie_size: ', ie_size)
     inputs = inputs_embeds
     predicted_tokens = [] #torch.tensor([[]]).to(device)
 
@@ -121,13 +121,12 @@ def generate_output(model, tokenizer, length, input_ids=None, image_features=Non
         predicted_tokens = torch.cat([x.unsqueeze(1) for x in predicted_tokens], dim=1).to(device)
         #predicted_token_logits = torch.cat([x.unsqueeze(1) for x in predicted_token_logits], dim=1).to(device)
 
-        print("logits: ", logits.size())
-        print("labels: ", labels.size())
-        #assert predicted_token_logits.size(1) == labels.size(1)
+        #print("logits: ", logits.size())
+        #print("labels: ", labels.size())
+
         labels = labels.type(torch.LongTensor).to(device)
 
         logits = logits[:, ie_size:ie_size+label_size, :] #.contiguous()
-        #labels = labels.contiguous()
 
         loss = model.loss(logits,
                           labels)

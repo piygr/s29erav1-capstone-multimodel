@@ -99,6 +99,8 @@ class CLIPVisionToPhi(nn.Module):
         )
 
         out_len = extra['max_seqlen'] - input_ids.size(1)
+        assert out_len == labels.size(1)
+        
         return generate_output(self,
                                self.tokenizer,
                                out_len,

@@ -129,8 +129,8 @@ else:
             if step_count == -1:
                 print('Epoch:', '%04d' % (epoch + 1), 'loss =', '{:.6f}'.format(loss.item()))
 
-            elif step_count % 2 == 0:
-                print('\t\t', '-- %s step loss ='%step_count, '{:.6f}'.format(loss.item()))
+            elif step_count % 100 == 0:
+                print('\t', '-- %s step loss ='%step_count, '{:.6f}'.format(loss.item()))
                 a = torch.tensor(epoch_loss, dtype=torch.float16)
                 torch.save({
                     'epoch': epoch,
@@ -140,9 +140,8 @@ else:
                     step_count: step_count,
                 }, '%s/vp_ckpt_%s.pth' % (extra['checkpoint_dir'], epoch))
 
-                print('pred: ', tokenizer.decode(output['pred'][0]) )
-                print('label: ', tokenizer.decode(labels[0]))
-                #tokenizer.decode()
+                print('\tpred: ', tokenizer.decode(output['pred'][0]) )
+                print('\tlabel: ', tokenizer.decode(labels[0]))
 
             step_count += 1
 
