@@ -73,8 +73,8 @@ def generate_output(model, tokenizer, length, input_ids=None, image_features=Non
 
     ie_size = inputs_embeds.size(1)
     inputs = inputs_embeds
-    predicted_tokens = torch.tensor([[]]).to(device)
-    predicted_token_logits = torch.tensor([[]]).to(device)
+    predicted_tokens = [] #torch.tensor([[]]).to(device)
+    predicted_token_logits = [] #torch.tensor([[]]).to(device)
     out = {}
     with torch.no_grad():
         if labels is None:
@@ -88,8 +88,9 @@ def generate_output(model, tokenizer, length, input_ids=None, image_features=Non
                                                         top_p=top_p)  # Apply top-k and/or top-p
                 next_token = torch.multinomial(F.softmax(filtered_logits, dim=-1), num_samples=1)  # Sample
                 print("next_token: ", next_token.size())
-                predicted_tokens = torch.cat((predicted_tokens, next_token), dim=1)
-                print("predicted_tokens: ", predicted_tokens.size())
+                #print("predicted_tokens: ", predicted_tokens.size())
+                predicted_tokens.append(next_token)
+                #print("predicted_tokens: ", predicted_tokens.size())
                 next_token_embed = model.text_embedding(next_token)
                 print("next_token_embed: ", next_token_embed.size())
                 inputs = torch.cat((inputs, next_token_embed.to(device)), dim=1)
@@ -98,6 +99,7 @@ def generate_output(model, tokenizer, length, input_ids=None, image_features=Non
             out['pred'] = tokenizer.decode(predicted_tokens)
             out['logits'] = logits
 
+            predicted_tokens = torch.cat(predicted_tokens, dim=1)
         else:
             # traverse_len = labels.size(1) - inputs_embeds.size(1)
             for idx in range(length):
@@ -111,11 +113,11 @@ def generate_output(model, tokenizer, length, input_ids=None, image_features=Non
                 next_token = torch.multinomial(F.softmax(filtered_logits, dim=-1), num_samples=1)  # Sample
                 print("next_token: ", next_token.size())
 
-                predicted_tokens = torch.cat((predicted_tokens, next_token), dim=1)
-                print("predicted_tokens: ", predicted_tokens.size())
+                predicted_tokens.append(next_token)
+                #print("predicted_tokens: ", predicted_tokens.size())
 
-                predicted_token_logits = torch.cat((predicted_token_logits, next_token_logits), dim=1)
-                print("predicted_token_logits: ", predicted_token_logits.size())
+                predicted_token_logits.append(next_token_logits)
+                #print("predicted_token_logits: ", predicted_token_logits.size())
 
                 tf_token = labels[:, idx : idx+1 ]
                 tf_token_embed = model.text_embedding(tf_token)
@@ -124,12 +126,13 @@ def generate_output(model, tokenizer, length, input_ids=None, image_features=Non
                 inputs = torch.cat((inputs, tf_token_embed), dim=1)  # Add the token to the generated text
                 print("inputs: ", inputs.size())
 
+            predicted_tokens = torch.cat(predicted_tokens, dim=1).to(device)
+            predicted_token_logits = torch.cat(predicted_token_logits, dim=1).to(device)
+
             assert predicted_token_logits.size(1) == labels.size(1)
 
             loss = model.loss(predicted_token_logits.contiguous().view(-1, predicted_token_logits.size(-1)),
                               labels.contiguous().view(-1))
-
-            predicted_tokens = torch.stack((predicted_tokens,), dim=0)
 
             out = dict(pred=tokenizer.decode(predicted_tokens),
                        loss=loss,
