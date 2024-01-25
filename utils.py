@@ -91,9 +91,9 @@ def generate_output(model, tokenizer, length, input_ids=None, image_features=Non
 
                 #print("predicted_tokens: ", predicted_tokens.size())
                 next_token_embed = model.text_embedding(next_token)
-                print("next_token_embed: ", next_token_embed.size())
+                #print("next_token_embed: ", next_token_embed.size())
                 inputs = torch.cat((inputs, next_token_embed), dim=1)
-                print("inputs: ", inputs.size())
+                #print("inputs: ", inputs.size())
 
             predicted_tokens = torch.cat([x.unsqueeze(1) for x in predicted_tokens], dim=1)
             out['pred'] = tokenizer.decode(predicted_tokens)

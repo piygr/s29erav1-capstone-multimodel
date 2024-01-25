@@ -78,7 +78,7 @@ if extra['validation_phase']:
     model.vision_projector.load_state_dict(checkpoint['model_state_dict'])
     inp = next(data_iter)
     out = model.generate(image_features=inp['image_features'])
-    print(out)
+    #print(out)
 else:
     train_dl  = get_dataloaders(extra['data_dir'], tokenizer, train_only=True)
 
