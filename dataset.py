@@ -160,7 +160,7 @@ class LiveImageToGenTextDataset(Dataset):
             truncate_len = extra['max_seqlen'] - token_ids.size(0) - 1
             labels = labels[:truncate_len]
 
-        labels = torch.stack(
+        labels = torch.cat(
             [
                 torch.tensor(labels),
                 torch.tensor(self.tokenizer.eos_token_id),
