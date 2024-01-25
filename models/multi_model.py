@@ -125,7 +125,7 @@ class CLIPVisionToPhi(nn.Module):
         input_ids = torch.tensor(tokenizer_image_token(prompt, tokenizer=self.tokenizer))
         input_embeds, labels = self.prepare_input_labels(
             image_embeds,
-            input_ids
+            input_ids.unsqueeze(0)
         )
         return self.phi_model.generate(inputs_embeds=input_embeds)
 
