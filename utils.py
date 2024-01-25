@@ -83,35 +83,31 @@ def generate_output(model, tokenizer, length, input_ids=None, image_features=Non
                 logits = outputs['logits']
                 next_token_logits = logits[:, -1, :] / temperature  # Apply temperature
 
-                print("next_token_logits: ", next_token_logits.size())
                 filtered_logits = top_k_top_p_filtering(next_token_logits, top_k=top_k,
                                                         top_p=top_p)  # Apply top-k and/or top-p
                 next_token = torch.multinomial(F.softmax(filtered_logits, dim=-1), num_samples=1)  # Sample
-                print("next_token: ", next_token.size())
-                #print("predicted_tokens: ", predicted_tokens.size())
+
                 predicted_tokens.append(next_token)
+
                 #print("predicted_tokens: ", predicted_tokens.size())
                 next_token_embed = model.text_embedding(next_token)
                 print("next_token_embed: ", next_token_embed.size())
-                inputs = torch.cat((inputs, next_token_embed.to(device)), dim=1)
+                inputs = torch.cat((inputs, next_token_embed), dim=1)
                 print("inputs: ", inputs.size())
 
+            predicted_tokens = torch.cat(predicted_tokens, dim=1)
             out['pred'] = tokenizer.decode(predicted_tokens)
             out['logits'] = logits
-
-            predicted_tokens = torch.cat(predicted_tokens, dim=1)
         else:
             # traverse_len = labels.size(1) - inputs_embeds.size(1)
             for idx in range(length):
                 outputs = model.phi_model(inputs_embeds=inputs)
                 logits = outputs['logits']
                 next_token_logits = logits[:, -1, :] / temperature  # Apply temperature
-                print("next_token_logits: ", next_token_logits.size())
 
                 filtered_logits = top_k_top_p_filtering(next_token_logits, top_k=top_k,
                                                         top_p=top_p)  # Apply top-k and/or top-p
                 next_token = torch.multinomial(F.softmax(filtered_logits, dim=-1), num_samples=1)  # Sample
-                print("next_token: ", next_token.size())
 
                 predicted_tokens.append(next_token)
                 #print("predicted_tokens: ", predicted_tokens.size())
@@ -119,9 +115,8 @@ def generate_output(model, tokenizer, length, input_ids=None, image_features=Non
                 predicted_token_logits.append(next_token_logits)
                 #print("predicted_token_logits: ", predicted_token_logits.size())
 
-                tf_token = labels[:, idx : idx+1 ]
+                tf_token = labels[:, idx : idx+1 ].to(device)
                 tf_token_embed = model.text_embedding(tf_token)
-                print("tf_token_embed: ", tf_token_embed.size())
 
                 inputs = torch.cat((inputs, tf_token_embed), dim=1)  # Add the token to the generated text
                 print("inputs: ", inputs.size())
@@ -129,6 +124,8 @@ def generate_output(model, tokenizer, length, input_ids=None, image_features=Non
             predicted_tokens = torch.cat(predicted_tokens, dim=1).to(device)
             predicted_token_logits = torch.cat(predicted_token_logits, dim=1).to(device)
 
+            print("predicted_token_logits: ", predicted_token_logits.size())
+            print("labels: ", labels.size())
             assert predicted_token_logits.size(1) == labels.size(1)
 
             loss = model.loss(predicted_token_logits.contiguous().view(-1, predicted_token_logits.size(-1)),
