@@ -64,8 +64,22 @@ class ImageFeatureToGenTextDataset(Dataset):
 
         token_ids = torch.tensor(tokenizer_image_token(prompt, tokenizer=self.tokenizer))
 
-        labels = self.tokenizer.encode(caption_dict.get('caption') + self.tokenizer.eos_token)
-        labels = torch.tensor(labels)
+        labels = self.tokenizer.encode(caption_dict.get('caption'))
+        #labels = torch.tensor(labels)
+
+        pad_token_count = extra['max_seqlen'] - token_ids.size(0) - len(labels) - 1
+        if pad_token_count < 0:
+            pad_token_count = 0
+            truncate_len = extra['max_seqlen'] - token_ids.size(0) - 1
+            labels = labels[:truncate_len]
+
+        labels = torch.stack(
+            (
+                labels,
+                self.tokenizer.eos_token_id,
+                self.tokenizer.pad_token_id*pad_token_count),
+            dim=0
+        )
 
         '''parts = prompt.split(' caption: ')
         non_caption_label = parts[0] + ' caption: '
@@ -136,8 +150,22 @@ class LiveImageToGenTextDataset(Dataset):
 
         token_ids = torch.tensor(tokenizer_image_token(prompt, tokenizer=self.tokenizer))
 
-        labels = self.tokenizer.encode(caption_dict.get('caption') + self.tokenizer.eos_token)
-        labels = torch.tensor(labels)
+        labels = self.tokenizer.encode(caption_dict.get('caption'))
+        # labels = torch.tensor(labels)
+
+        pad_token_count = extra['max_seqlen'] - token_ids.size(0) - len(labels) - 1
+        if pad_token_count < 0:
+            pad_token_count = 0
+            truncate_len = extra['max_seqlen'] - token_ids.size(0) - 1
+            labels = labels[:truncate_len]
+
+        labels = torch.stack(
+            (
+                labels,
+                self.tokenizer.eos_token_id,
+                self.tokenizer.pad_token_id * pad_token_count),
+            dim=0
+        )
 
         '''parts = prompt.split(' caption: ')
         non_caption_label = parts[0] + ' caption: '
