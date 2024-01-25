@@ -95,7 +95,7 @@ def generate_output(model, tokenizer, length, input_ids=None, image_features=Non
                 inputs = torch.cat((inputs, next_token_embed), dim=1)
                 print("inputs: ", inputs.size())
 
-            predicted_tokens = torch.cat(predicted_tokens, dim=1)
+            predicted_tokens = torch.cat([x.unsqueeze(1) for x in predicted_tokens], dim=1)
             out['pred'] = tokenizer.decode(predicted_tokens)
             out['logits'] = logits
         else:
@@ -121,8 +121,8 @@ def generate_output(model, tokenizer, length, input_ids=None, image_features=Non
                 inputs = torch.cat((inputs, tf_token_embed), dim=1)  # Add the token to the generated text
                 print("inputs: ", inputs.size())
 
-            predicted_tokens = torch.cat(predicted_tokens, dim=1).to(device)
-            predicted_token_logits = torch.cat(predicted_token_logits, dim=1).to(device)
+            predicted_tokens = torch.cat([x.unsqueeze(1) for x in predicted_tokens], dim=1).to(device)
+            predicted_token_logits = torch.cat([x.unsqueeze(1) for x in predicted_token_logits], dim=1).to(device)
 
             print("predicted_token_logits: ", predicted_token_logits.size())
             print("labels: ", labels.size())
