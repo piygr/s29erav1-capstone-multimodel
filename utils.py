@@ -96,7 +96,7 @@ def generate_output(model, tokenizer, length, input_ids=None, image_features=Non
                 #print("inputs: ", inputs.size())
 
             predicted_tokens = torch.cat([x.unsqueeze(1) for x in predicted_tokens], dim=1)
-            out['pred'] = tokenizer.decode(predicted_tokens)
+            out['pred'] = predicted_tokens
             out['logits'] = logits
         else:
             # traverse_len = labels.size(1) - inputs_embeds.size(1)
@@ -131,7 +131,7 @@ def generate_output(model, tokenizer, length, input_ids=None, image_features=Non
             loss = model.loss(predicted_token_logits.contiguous().view(-1, predicted_token_logits.size(-1)),
                               labels.contiguous().view(-1) )
 
-            out = dict(pred=tokenizer.decode(predicted_tokens),
+            out = dict(pred=predicted_tokens,
                        loss=loss,
                        logits=logits)
 

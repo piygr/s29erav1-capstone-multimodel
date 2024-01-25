@@ -140,7 +140,7 @@ else:
                     step_count: step_count,
                 }, '%s/vp_ckpt_%s.pth' % (extra['checkpoint_dir'], epoch))
 
-                print('pred: ', output['pred'][0] )
+                print('pred: ', tokenizer.decode(output['pred'][0]) )
                 print('label: ', tokenizer.decode(labels[0]))
                 #tokenizer.decode()
 
