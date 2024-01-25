@@ -112,7 +112,7 @@ def generate_output(model, tokenizer, length, input_ids=None, image_features=Non
                 predicted_tokens.append(next_token)
                 #print("predicted_tokens: ", predicted_tokens.size())
 
-                predicted_token_logits.append(next_token_logits)
+                #predicted_token_logits.append(next_token_logits)
                 #print("predicted_token_logits: ", predicted_token_logits.size())
 
                 tf_token = labels[:, idx : idx+1 ].to(device)
@@ -122,13 +122,14 @@ def generate_output(model, tokenizer, length, input_ids=None, image_features=Non
                 #print("inputs: ", inputs.size())
 
             predicted_tokens = torch.cat([x.unsqueeze(1) for x in predicted_tokens], dim=1).to(device)
-            predicted_token_logits = torch.cat([x.unsqueeze(1) for x in predicted_token_logits], dim=1).to(device)
+            #predicted_token_logits = torch.cat([x.unsqueeze(1) for x in predicted_token_logits], dim=1).to(device)
 
-            print("predicted_token_logits: ", predicted_token_logits.size())
+            #print("predicted_token_logits: ", predicted_token_logits.size())
             print("labels: ", labels.size())
-            assert predicted_token_logits.size(1) == labels.size(1)
+            #assert predicted_token_logits.size(1) == labels.size(1)
             labels = labels.type(torch.LongTensor).to(device)
-            loss = model.loss(predicted_token_logits.contiguous().view(-1, predicted_token_logits.size(-1)),
+
+            loss = model.loss(logits[:, ie_size:].contiguous().view(-1, logits.size(-1)),
                               labels.contiguous().view(-1) )
 
             out = dict(pred=predicted_tokens,
