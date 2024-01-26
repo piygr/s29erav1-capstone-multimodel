@@ -128,8 +128,7 @@ def generate_output(model, tokenizer, length, input_ids=None, image_features=Non
 
         logits = logits[:, ie_size:ie_size+label_size, :] #.contiguous()
 
-        loss = model.loss(logits,
-                          labels)
+        loss = model.loss(logits.view(-1, logits.size(-1)), labels.view(-1))
 
         out = dict(pred=predicted_tokens,
                    loss=loss,
