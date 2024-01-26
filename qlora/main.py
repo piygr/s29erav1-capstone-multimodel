@@ -71,19 +71,18 @@ optimizer.zero_grad()
 while step_count < total_steps:
     train_batch = next(data_iter)
 
-    label = train_batch['label']
+    labels = train_batch['labels']
 
-    with torch.autocast(device_type=device, dtype=torch.float32):
+    with torch.autocast(device_type=device, dtype=torch.float16):
         if cfg['vision_model']:
-            image_feature = train_batch['image_feature']
+            image_feature = train_batch['image_features']
             input_ids = train_batch['input_ids']
-            mask = train_batch['mask']
+
 
             output = model(
                 input_ids.to(device),
-                image_feature=image_feature.to(device),
-                mask=mask.to(device),
-                # labels=label.type(torch.LongTensor).to(device)
+                image_features=image_feature.to(device),
+                labels=labels.type(torch.LongTensor).to(device)
             )
 
         else:
@@ -96,8 +95,8 @@ while step_count < total_steps:
                 #labels=label.type(torch.LongTensor).to(device)
             )
 
-        loss = CausalLMLoss()(output.to(device), label.type(torch.LongTensor).to(device) )
-        #loss = output['loss']
+        logits = output['logits']
+        loss = output['loss']
         loss.backward()
 
         one_pass_loss.append(loss.item())
@@ -120,6 +119,10 @@ while step_count < total_steps:
             b = torch.tensor(one_pass_loss, dtype=torch.float16)
             print('Epoch:', '%04d' % math.ceil(step_count/len(train_dl)), 'loss =', '{:.6f}'.format(b.mean()))
             one_pass_loss = []
+
+        print('\tQ: ', tokenizer.decode( input_ids[0][1:] ))
+        print('\tpred: ', tokenizer.decode( output['pred'][0] ))
+        print('\tlabel: ', tokenizer.decode( labels[0] ))
 
     if (cfg['micro_batch_size'] * step_count) % cfg['batch_size'] == 0:
         optimizer.step()

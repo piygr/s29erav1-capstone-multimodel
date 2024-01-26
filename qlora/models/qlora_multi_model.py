@@ -1,10 +1,12 @@
 import torch
 import torch.nn as nn
 from peft import get_peft_model
-from transformers import AutoModelForCausalLM
+from transformers import AutoModelForCausalLM, top_k_top_p_filtering
 
 from config import MultiInstructModelConfig, qlora_config as cfg
+from constants import IMAGE_TOKEN_INDEX
 from models.vision_projector_model import VisionProjector
+from utils import generate_output
 
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
@@ -57,61 +59,66 @@ class MultiInstructModelBase(nn.Module):
         self.phi_model.use_cache = False
         self.phi_model = get_peft_model(self.phi_model, self.config.peft_config)
 
+        self.text_embedding = self.phi_model.get_input_embeddings()
+
+        self.loss = CausalLMLoss()
+
 
     def get_visual_projector_embedding(self, x):
         return self.vision_projector(x)
 
 
+    def prepare_input_labels(self,
+                             image_embeds,
+                             input_ids,
+                             labels=None):
+
+        new_input_embeds = []
+        new_labels = labels
+        for batch_idx, cur_input_ids in enumerate(input_ids):
+            image_token_indices = torch.where(cur_input_ids == IMAGE_TOKEN_INDEX)[0]
+            cur_new_input_embeds = []
+
+
+            image_token_start = image_token_indices[0]
+
+            cur_new_input_embeds.append(self.text_embedding(cur_input_ids[:image_token_start]))
+            cur_new_input_embeds.append(image_embeds[batch_idx])
+            cur_new_input_embeds.append(self.text_embedding(cur_input_ids[image_token_start + 1:]))
+            cur_new_input_embeds = [x.to(device) for x in cur_new_input_embeds]
+            cur_new_input_embeds = torch.cat(cur_new_input_embeds, dim=0)
+
+            new_input_embeds.append(cur_new_input_embeds)
+
+
+        new_input_embeds = torch.stack(new_input_embeds, dim=0)
+
+
+        return new_input_embeds, new_labels
+
+
     def forward(
                 self,
                 input_ids,
-                image_feature=None,
-                mask=None,
+                image_features=None,
                 labels=None
     ):
 
-        if image_feature is not None:
-            context_embeds = self.get_visual_projector_embedding(image_feature).requires_grad_(requires_grad=False)
-            text_embd = self.phi_model.get_input_embeddings()(input_ids)
+        if image_features is not None:
+            image_embeds = self.get_visual_projector_embedding(image_features).requires_grad_(requires_grad=False)
 
-            embeds = torch.cat(
-                [context_embeds,
-                 text_embd],
-                dim=1
-            ).to(device)
-
-            ctx_embed_size = context_embeds.size(1)
-
-            attention_mask = torch.cat(
-                [
-                    torch.ones((mask.size(0), ctx_embed_size), dtype=torch.int).to(device),
-                    mask
-                ],
-                dim=1
-            ).to(device)
-
-            x = self.phi_model(
-                inputs_embeds=embeds,
-                attention_mask=attention_mask
-            )
-
-            logits = x['logits'][:, ctx_embed_size:]
-
-        else:
-            x = self.phi_model(
+            input_embeds, labels = self.prepare_input_labels(
+                image_embeds,
                 input_ids,
-                attention_mask=mask
+                labels=labels
             )
 
-            logits = x['logits']
+            out_len = cfg['max_seqlen'] - input_embeds.size(1)
+            assert out_len == labels.size(1)
 
-        if labels is not None:
-            loss = self.phi_model.loss(
-                logits,
-                labels
-            )
-
-            return dict(logits=logits, loss=loss)
-
-        return logits
+            return generate_output(self,
+                                   self.tokenizer,
+                                   out_len,
+                                   inputs_embeds=input_embeds,
+                                   labels=labels)
 

@@ -154,10 +154,10 @@ class LiveImageToGenTextDataset(Dataset):
         labels = self.tokenizer.encode(caption_dict.get('caption'))
         # labels = torch.tensor(labels)
 
-        pad_token_count = extra['max_seqlen'] - (token_ids.size(0) + image_feature.size(0) -1) - len(labels) - 1
+        pad_token_count = extra['max_seqlen'] - (token_ids.size(0) + image_feature.size(0) - 1) - len(labels) - 1
         if pad_token_count < 0:
             pad_token_count = 0
-            truncate_len = extra['max_seqlen'] - (token_ids.size(0) + image_feature.size(0) -1) - 1
+            truncate_len = extra['max_seqlen'] - (token_ids.size(0) + image_feature.size(0) - 1) - 1
             labels = labels[:truncate_len]
 
         #print(labels)

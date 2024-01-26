@@ -30,7 +30,7 @@ class CLIPVisionToPhi(nn.Module):
         self.text_embedding = self.phi_model.get_input_embeddings()
         self.tokenizer = self.config.tokenizer
 
-        self.loss = CausalLMLoss()
+        self.loss = nn.CrossEntropyLoss()
 
         if self.config.freeze_phi_model:
             for param in self.phi_model.parameters():
@@ -49,10 +49,6 @@ class CLIPVisionToPhi(nn.Module):
             image_token_indices = torch.where(cur_input_ids == IMAGE_TOKEN_INDEX)[0]
             cur_new_input_embeds = []
 
-            '''if labels is not None:
-                cur_labels = labels[batch_idx]
-                cur_new_labels = []
-                assert cur_labels.shape == cur_input_ids.shape'''
 
             image_token_start = image_token_indices[0]
 
@@ -63,20 +59,7 @@ class CLIPVisionToPhi(nn.Module):
             cur_new_input_embeds = torch.cat(cur_new_input_embeds, dim=0)
 
             new_input_embeds.append(cur_new_input_embeds)
-            '''if labels is not None:
-                cur_new_labels.append(cur_labels[:image_token_start])
-                cur_new_labels.append(
-                    torch.full((image_embeds[batch_idx].shape[0],), IGNORE_INDEX, device=labels.device,
-                               dtype=labels.dtype))
 
-                cur_new_labels.append(cur_labels[image_token_start + 1:])
-
-                cur_new_labels = torch.cat(cur_new_labels, dim=0)
-                new_labels.append(cur_new_labels)
-
-                new_labels = torch.stack(new_labels, dim=0)
-            else:
-                new_labels = None'''
 
         new_input_embeds = torch.stack(new_input_embeds, dim=0)
 
