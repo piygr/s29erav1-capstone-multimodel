@@ -11,6 +11,7 @@ from config import extra
 from constants import *
 from utils import tokenizer_image_token
 import requests
+from pathlib import Path
 
 
 
@@ -142,7 +143,11 @@ class LiveImageToGenTextDataset(Dataset):
         image_index = self.image_ids_dict.get(image_id)
         image_url = 'http://images.cocodataset.org/%s/%s' % (self.directory, self.image_indices_json[image_index])
 
-        image = Image.open(requests.get(image_url, stream=True).raw)
+        if not Path(extra['data_dir'] + '/' + self.directory).is_dir():
+            image = Image.open(requests.get(image_url, stream=True).raw)
+        else:
+            image = Image.open(extra['data_dir'] + '/%s/%s' % (self.directory, self.image_indices_json[image_index]) )
+
         inputs = self.processor(images=image, return_tensors="pt")
         x = self.model(**inputs, output_hidden_states=True)
         image_feature = x.hidden_states[-2][:, 1:].squeeze(0).cpu().detach()    #49 768

@@ -85,7 +85,7 @@ while step_count < total_steps:
                 labels=labels.type(torch.LongTensor).to(device)
             )
 
-        else:
+        '''else:
             input_ids = train_batch['input_ids']
             mask = train_batch['mask']
 
@@ -93,7 +93,7 @@ while step_count < total_steps:
                 input_ids=input_ids.to(device),
                 attention_mask=mask.to(device),
                 #labels=label.type(torch.LongTensor).to(device)
-            )
+            )'''
 
         logits = output['logits']
         loss = output['loss']
