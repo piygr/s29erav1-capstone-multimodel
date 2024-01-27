@@ -111,7 +111,7 @@ class CLIPVisionToPhi(nn.Module):
         return dict(
             logits=logits,
             loss=loss_val,
-            preds=generate_with_logits(X)
+            preds=generate_with_logits(logits[:, ie_size:ie_size + labels.size(1), :])
         )
 
         '''
