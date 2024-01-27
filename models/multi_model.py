@@ -7,7 +7,7 @@ from models.phi2.custom_modeling_phi import PhiForCausalLM
 from models.vision_projector_model import VisionProjector
 from transformers import AutoModelForCausalLM
 from config import extra
-from utils import tokenizer_image_token, generate_output
+from utils import tokenizer_image_token, generate_output, generate_with_logits
 
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
@@ -81,6 +81,38 @@ class CLIPVisionToPhi(nn.Module):
             labels=labels
         )
 
+        ie_size = input_embeds.size(1)  - 1
+        label_embeds = self.text_embedding(labels)
+        combined_embeds = torch.cat(
+            [
+                input_embeds,
+                label_embeds
+            ],
+            dim=1
+        )
+
+        logits = self.phi_model(
+            inputs_embeds=combined_embeds
+        )
+
+        X = logits[:, ie_size:ie_size + labels.size(1), :].contiguous()
+        Y = labels.contiguous().type(torch.LongTensor).to(device)
+
+        X = X.view(-1, X.size(-1))
+        Y = Y.view(-1)
+
+        loss_val = self.loss(
+            X,
+            Y
+        )
+
+        return dict(
+            logits=logits,
+            loss=loss_val,
+            preds=generate_with_logits(X)
+        )
+
+        '''
         out_len = extra['max_seqlen'] - input_embeds.size(1)
         assert out_len == labels.size(1)
 
@@ -89,6 +121,8 @@ class CLIPVisionToPhi(nn.Module):
                                out_len,
                                inputs_embeds=input_embeds,
                                labels=labels)
+                               
+        '''
 
         #return dict(logits=logits, loss=loss, inputs_embeds=input_embeds)
 

@@ -70,7 +70,6 @@ def generate_output(model, tokenizer, length, input_ids=None, image_features=Non
         return
 
     ie_size = inputs_embeds.size(1) - 1
-    #print('ie_size: ', ie_size)
     inputs = inputs_embeds
     predicted_tokens = [] #torch.tensor([[]]).to(device)
 
@@ -88,16 +87,12 @@ def generate_output(model, tokenizer, length, input_ids=None, image_features=Non
                 next_token = torch.multinomial(F.softmax(filtered_logits, dim=-1), num_samples=1)  # Sample
 
                 predicted_tokens.append(next_token)
-
-                #print("predicted_tokens: ", predicted_tokens.size())
                 next_token_embed = model.text_embedding(next_token)
-                #print("next_token_embed: ", next_token_embed.size())
                 inputs = torch.cat((inputs, next_token_embed), dim=1)
-                #print("inputs: ", inputs.size())
 
             predicted_tokens = torch.cat([x.unsqueeze(1) for x in predicted_tokens], dim=1)
             out['pred'] = predicted_tokens
-            out['logits'] = logits
+            out['logits'] = logits[:, ie_size:, :]
 
             return out
     else:
@@ -135,3 +130,21 @@ def generate_output(model, tokenizer, length, input_ids=None, image_features=Non
         #model.train()
 
         return out
+
+
+def generate_with_logits(logits, temperature=1, top_k=0, top_p=0.0):
+    predicted_tokens = []
+
+    for idx in logits.size(1):
+        next_token_logits = logits[:, idx, :] / temperature  # Apply temperature
+
+        filtered_logits = top_k_top_p_filtering(next_token_logits, top_k=top_k,
+                                                top_p=top_p)  # Apply top-k and/or top-p
+        next_token = torch.multinomial(F.softmax(filtered_logits, dim=-1), num_samples=1)  # Sample
+
+        predicted_tokens.append(next_token)
+
+    predicted_tokens = torch.cat([x.unsqueeze(1) for x in predicted_tokens], dim=1).to(device)
+    out = dict(pred=predicted_tokens,
+               logits=logits)
+    return out
