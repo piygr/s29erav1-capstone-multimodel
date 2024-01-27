@@ -117,7 +117,7 @@ else:
                 output = model(
                     image_features=image_features.to(device),
                     input_ids=input_ids.to(device),
-                    labels=labels
+                    labels=labels.to(device)
                 )
 
                 logits = output['logits']
