@@ -91,9 +91,11 @@ class CLIPVisionToPhi(nn.Module):
             dim=1
         )
 
-        logits = self.phi_model(
+        output = self.phi_model(
             inputs_embeds=combined_embeds
         )
+
+        logits = output['logits']
 
         X = logits[:, ie_size:ie_size + labels.size(1), :].contiguous()
         Y = labels.contiguous().type(torch.LongTensor).to(device)
