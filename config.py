@@ -148,7 +148,7 @@ class MultiInstructModelConfig(PretrainedConfig):
 
 
 extra = dict(
-    num_epochs=1,
+    num_epochs=2,
     resume=False,
     data_dir='../data',
     checkpoint_dir='../checkpoints',
