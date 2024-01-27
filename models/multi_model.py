@@ -97,8 +97,8 @@ class CLIPVisionToPhi(nn.Module):
 
         logits = output['logits']
 
-        pred = generate_with_logits(logits[:, ie_size:ie_size + labels.size(1), :])
-        
+        pred_dict = generate_with_logits(logits[:, ie_size:ie_size + labels.size(1), :])
+
         X = logits[:, ie_size:ie_size + labels.size(1), :]
         Y = labels.contiguous().type(torch.LongTensor).to(device)
 
@@ -113,7 +113,7 @@ class CLIPVisionToPhi(nn.Module):
         return dict(
             logits=logits,
             loss=loss_val,
-            pred=pred
+            pred=pred_dict['pred']
         )
 
         '''

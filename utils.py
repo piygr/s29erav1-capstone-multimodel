@@ -145,6 +145,7 @@ def generate_with_logits(logits, temperature=1, top_k=0, top_p=0.0):
         predicted_tokens.append(next_token)
 
     predicted_tokens = torch.cat([x.unsqueeze(1) for x in predicted_tokens], dim=1).to(device)
+
     out = dict(pred=predicted_tokens,
                logits=logits)
     return out
