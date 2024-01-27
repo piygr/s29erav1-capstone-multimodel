@@ -101,7 +101,7 @@ else:
         checkpoint = torch.load(extra['checkpoint_dir'] + '/' + 'vp_ckpt_0.pth')
         model.vision_projector.load_state_dict(checkpoint['model_state_dict'])
         optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
-        epoch = checkpoint['epoch'] + 1
+        epoch = checkpoint['epoch']
 
     step_count = -1
     model.vision_projector.train()
