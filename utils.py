@@ -135,7 +135,7 @@ def generate_output(model, tokenizer, length, input_ids=None, image_features=Non
 def generate_with_logits(logits, temperature=1, top_k=0, top_p=0.0):
     predicted_tokens = []
 
-    for idx in logits.size(1):
+    for idx in range(logits.size(1)):
         next_token_logits = logits[:, idx, :] / temperature  # Apply temperature
 
         filtered_logits = top_k_top_p_filtering(next_token_logits, top_k=top_k,
