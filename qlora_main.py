@@ -59,9 +59,9 @@ step_count = 0
 if cfg['resume']:
     checkpoint = torch.load(cfg['output_dir'] + '/' + 'qlora_config_100.pth')
     model.phi_model = PeftModel.from_pretrained(model.phi_model, cfg['output_dir'] + '/qlora_adapter_100', is_trainable=True)
-    model.phi_model = model.phi_model.merge_and_unload()
+    #model.phi_model = model.phi_model.merge_and_unload()
     #model.phi_model.from_pretrained( cfg['output_dir'] + '/qlora_adapter_100', is_trainable=True )
-    optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
+    #optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
     step_count = checkpoint['step_count']
 
 model.train()
@@ -109,13 +109,14 @@ while step_count < total_steps:
     elif step_count % 100 == 0:
         a = torch.tensor(one_pass_loss, dtype=torch.float16)
         print('Step#:', '%04d' % (step_count), 'loss =', '{:.6f}'.format(a.mean()))
-        torch.save({
-            'optimizer_state_dict': optimizer.state_dict(),
-            'loss': a.mean(),
-            'step_count': step_count,
-        }, '%s/qlora_config_%s.pth' % (cfg['output_dir'], step_count))
+        if step_count % 1000 == 0:
+            torch.save({
+                'optimizer_state_dict': optimizer.state_dict(),
+                'loss': a.mean(),
+                'step_count': step_count,
+            }, '%s/qlora_config_%s.pth' % (cfg['output_dir'], step_count))
 
-        model.phi_model.save_pretrained( '%s/qlora_adapter_%s' % (cfg['output_dir'], step_count) )
+            model.phi_model.save_pretrained( '%s/qlora_adapter_%s' % (cfg['output_dir'], step_count) )
 
         if step_count > 0 and (step_count % len(train_dl) == 0):
             b = torch.tensor(one_pass_loss, dtype=torch.float16)

@@ -131,18 +131,14 @@ class MultiInstructModelBase(nn.Module):
                 labels
             )
 
-            #print('input_embeds: ', input_embeds.size(), 'labels: ', labels.size())
-
 
             output = self.phi_model(
                 inputs_embeds=input_embeds
             )
 
             logits = output['logits']
-            #print('logits: ', logits.size())
 
             pred_dict = generate_with_logits(logits)
-            #print(pred_dict)
 
             X = logits[:, :-1, :]
             Y = labels[:, 1:].contiguous().type(torch.LongTensor).to(device)
