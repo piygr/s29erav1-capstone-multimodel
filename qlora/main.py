@@ -120,8 +120,7 @@ while step_count < total_steps:
             one_pass_loss = []
 
         #print('\tQ: ', tokenizer.decode( input_ids[0][1:] ))
-        print(output['pred'].size())
-        print('\tpred: ', tokenizer.decode( output['pred'] ))
+        print('\tpred: ', tokenizer.decode( output['pred'][0].squeeze(-1) ) )
         #print('\tlabel: ', tokenizer.decode( labels[0] ))
 
     if (cfg['micro_batch_size'] * step_count) % cfg['batch_size'] == 0:
