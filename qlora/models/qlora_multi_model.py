@@ -101,38 +101,34 @@ class MultiInstructModelBase(nn.Module):
                 self,
                 input_ids,
                 image_features=None,
-                labels=None
+                labels=None,
+                **kwargs
     ):
 
         if image_features is not None:
             image_embeds = self.get_visual_projector_embedding(image_features).requires_grad_(requires_grad=False)
 
-            input_embeds, labels = self.prepare_input_labels(
+            input_embeds, _ = self.prepare_input_labels(
                 image_embeds,
-                input_ids,
-                labels=labels
+                input_ids
             )
 
-            ie_size = input_embeds.size(1) - 1
-            label_embeds = self.text_embedding(labels)
-            print(input_embeds.size, labels.size())
+            last_token_index = kwargs.get('last_token_index')
 
-            combined_embeds = torch.cat(
-                [
-                    input_embeds,
-                    label_embeds
-                ],
-                dim=1
-            )
+            ie_size = last_token_index
+            #label_embeds = self.text_embedding(labels)
+            print('input_embeds: ', input_embeds.size, 'labels: ', labels.size(), 'ie: ', ie_size)
+
 
             output = self.phi_model(
-                inputs_embeds=combined_embeds
+                inputs_embeds=input_embeds
             )
 
             logits = output['logits']
             print('logits: ', logits.size())
 
             pred_dict = generate_with_logits(logits[:, ie_size:ie_size + labels.size(1), :])
+            print(pred_dict)
 
             X = logits[:, ie_size:ie_size + labels.size(1), :]
             Y = labels.contiguous().type(torch.LongTensor).to(device)

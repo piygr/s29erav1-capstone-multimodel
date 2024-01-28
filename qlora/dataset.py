@@ -100,14 +100,19 @@ class QnAInstructDataset(Dataset):
                                  dtype=torch.int32)
 
         labels = self.tokenizer.encode(parts[1])
-        '''input_pad_tokens = cfg.get('max_seqlen') - ( len(token_ids) + image_feature.size(0) - 1 )
+
+        last_token_index = len(token_ids) + (image_feature.size(0) - 1) - 1
+        last_token_index = torch.tensor(last_token_index, dtype=torch.int32)
+
+        token_ids = token_ids + labels
+        input_pad_tokens = cfg.get('max_seqlen') - ( len(token_ids) + image_feature.size(0) - 1 )
 
         if input_pad_tokens < 0:
             input_pad_tokens = 0
-            conn_tokens = self.tokenizer.encode('AI### ')
-            token_ids = tokenizer_image_token(parts[0], tokenizer=self.tokenizer)
-            truncate_len = cfg['max_seqlen'] -  ( len(token_ids) + len(conn_tokens) + image_feature.size(0) - 1 )
-            token_ids = token_ids[:truncate_len] + conn_tokens
+            #conn_tokens = self.tokenizer.encode('AI### ')
+            #token_ids = tokenizer_image_token(parts[0], tokenizer=self.tokenizer)
+            truncate_len = cfg['max_seqlen'] -  ( image_feature.size(0) - 1 )
+            token_ids = token_ids[:truncate_len]
 
         input_ids = torch.cat(
             [
@@ -115,7 +120,7 @@ class QnAInstructDataset(Dataset):
                 torch.tensor([self.tokenizer.pad_token_id] * input_pad_tokens, dtype=torch.int32)
             ],
             dim=0
-        )'''
+        )
 
         lable_pad_tokens = cfg.get('max_seqlen') - len(labels) #already attaching eos in qna creation
         if lable_pad_tokens < 0:
@@ -134,8 +139,9 @@ class QnAInstructDataset(Dataset):
 
         return dict(
             image_features=image_feature,
-            input_ids=token_ids,
-            labels=labels
+            input_ids=input_ids,
+            labels=labels,
+            last_token_index=last_token_index
         )
         '''else:
 

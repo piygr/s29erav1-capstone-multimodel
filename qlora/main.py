@@ -77,12 +77,13 @@ while step_count < total_steps:
         if cfg['vision_model']:
             image_feature = train_batch['image_features']
             input_ids = train_batch['input_ids']
-
+            last_token_index = train_batch['last_token_index']
 
             output = model(
                 input_ids.to(device),
                 image_features=image_feature.to(device),
-                labels=labels.type(torch.LongTensor).to(device)
+                labels=labels.type(torch.LongTensor).to(device),
+                last_token_index=last_token_index.to(device)
             )
 
         '''else:
