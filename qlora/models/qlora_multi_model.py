@@ -130,7 +130,7 @@ class MultiInstructModelBase(nn.Module):
                 labels
             )
 
-            print('input_embeds: ', input_embeds.size(), 'labels: ', labels.size())
+            #print('input_embeds: ', input_embeds.size(), 'labels: ', labels.size())
 
 
             output = self.phi_model(
@@ -138,9 +138,9 @@ class MultiInstructModelBase(nn.Module):
             )
 
             logits = output['logits']
-            print('logits: ', logits.size())
+            #print('logits: ', logits.size())
 
-            #pred_dict = generate_with_logits(logits[:, ie_size.item():ie_size.item() + labels.size(1), :])
+            pred_dict = generate_with_logits(logits)
             #print(pred_dict)
 
             X = logits[:, :-1, :]
@@ -154,8 +154,10 @@ class MultiInstructModelBase(nn.Module):
                 Y
             )
 
+
             return dict(
                 logits=logits,
-                loss=loss_val
+                loss=loss_val,
+                pred=pred_dict['pred']
             )
 

@@ -77,13 +77,11 @@ while step_count < total_steps:
         if cfg['vision_model']:
             image_feature = train_batch['image_features']
             input_ids = train_batch['input_ids']
-            last_token_index = train_batch['last_token_index']
 
             output = model(
                 input_ids.to(device),
                 image_features=image_feature.to(device),
-                labels=labels.type(torch.LongTensor).to(device),
-                last_token_index=last_token_index.to(device)
+                labels=labels.type(torch.LongTensor).to(device)
             )
 
         '''else:
@@ -121,9 +119,10 @@ while step_count < total_steps:
             print('Epoch:', '%04d' % math.ceil(step_count/len(train_dl)), 'loss =', '{:.6f}'.format(b.mean()))
             one_pass_loss = []
 
-        print('\tQ: ', tokenizer.decode( input_ids[0][1:] ))
-        print('\tpred: ', tokenizer.decode( output['pred'][0] ))
-        print('\tlabel: ', tokenizer.decode( labels[0] ))
+        #print('\tQ: ', tokenizer.decode( input_ids[0][1:] ))
+        print(output['pred'].size())
+        print('\tpred: ', tokenizer.decode( output['pred'] ))
+        #print('\tlabel: ', tokenizer.decode( labels[0] ))
 
     if (cfg['micro_batch_size'] * step_count) % cfg['batch_size'] == 0:
         optimizer.step()
