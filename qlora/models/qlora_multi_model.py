@@ -4,7 +4,7 @@ from peft import get_peft_model
 from transformers import AutoModelForCausalLM, top_k_top_p_filtering
 
 from config import MultiInstructModelConfig, qlora_config as cfg
-from constants import IMAGE_TOKEN_INDEX
+from constants import IMAGE_TOKEN_INDEX, IGNORE_INDEX
 from models.vision_projector_model import VisionProjector
 from utils import generate_output, generate_with_logits
 
@@ -61,7 +61,9 @@ class MultiInstructModelBase(nn.Module):
 
         self.text_embedding = self.phi_model.get_input_embeddings()
 
-        self.loss = CausalLMLoss()
+        self.loss = nn.CrossEntropyLoss(
+            ignore_index=IGNORE_INDEX, label_smoothing=0.1
+        )
 
 
     def get_visual_projector_embedding(self, x):
@@ -74,11 +76,15 @@ class MultiInstructModelBase(nn.Module):
                              labels=None):
 
         new_input_embeds = []
-        new_labels = labels
+        new_labels = []
         for batch_idx, cur_input_ids in enumerate(input_ids):
+
+            if labels is not None:
+                cur_labels = labels[batch_idx]
+                cur_new_labels = []
+
             image_token_indices = torch.where(cur_input_ids == IMAGE_TOKEN_INDEX)[0]
             cur_new_input_embeds = []
-
 
             image_token_start = image_token_indices[0]
 
@@ -90,8 +96,18 @@ class MultiInstructModelBase(nn.Module):
 
             new_input_embeds.append(cur_new_input_embeds)
 
+            if labels is not None:
+                cur_new_labels.append(cur_labels[:image_token_start])
+                cur_new_labels.append(
+                    torch.full((image_embeds[batch_idx].shape[0],), IGNORE_INDEX, device=labels.device, dtype=labels.dtype))
+
+                cur_new_labels.append( cur_labels[image_token_start + 1:] )
+
+                cur_new_labels = torch.cat(cur_new_labels, dim=0)
+                new_labels.append(cur_new_labels)
 
         new_input_embeds = torch.stack(new_input_embeds, dim=0)
+        new_labels = torch.stack(new_labels, dim=0)
 
 
         return new_input_embeds, new_labels
@@ -108,16 +124,13 @@ class MultiInstructModelBase(nn.Module):
         if image_features is not None:
             image_embeds = self.get_visual_projector_embedding(image_features).requires_grad_(requires_grad=False)
 
-            input_embeds, _ = self.prepare_input_labels(
+            input_embeds, labels = self.prepare_input_labels(
                 image_embeds,
-                input_ids
+                input_ids,
+                labels
             )
 
-            last_token_index = kwargs.get('last_token_index')
-
-            ie_size = last_token_index
-            #label_embeds = self.text_embedding(labels)
-            print('input_embeds: ', input_embeds.size, 'labels: ', labels.size(), 'ie: ', ie_size)
+            print('input_embeds: ', input_embeds.size(), 'labels: ', labels.size())
 
 
             output = self.phi_model(
@@ -127,11 +140,11 @@ class MultiInstructModelBase(nn.Module):
             logits = output['logits']
             print('logits: ', logits.size())
 
-            pred_dict = generate_with_logits(logits[:, ie_size:ie_size + labels.size(1), :])
-            print(pred_dict)
+            #pred_dict = generate_with_logits(logits[:, ie_size.item():ie_size.item() + labels.size(1), :])
+            #print(pred_dict)
 
-            X = logits[:, ie_size:ie_size + labels.size(1), :]
-            Y = labels.contiguous().type(torch.LongTensor).to(device)
+            X = logits[:, :-1, :]
+            Y = labels[:, 1:].contiguous().type(torch.LongTensor).to(device)
 
             X = X.contiguous().view(-1, X.size(-1))
             Y = Y.view(-1)
@@ -143,7 +156,6 @@ class MultiInstructModelBase(nn.Module):
 
             return dict(
                 logits=logits,
-                loss=loss_val,
-                pred=pred_dict['pred']
+                loss=loss_val
             )
 

@@ -10,6 +10,7 @@ import torch
 from transformers import CLIPVisionModel, CLIPImageProcessor
 
 from config import qlora_config as cfg
+from constants import IGNORE_INDEX
 from utils import tokenizer_image_token
 
 
@@ -91,19 +92,8 @@ class QnAInstructDataset(Dataset):
         qna = instruct_dict.get('qna')
 
         prompt = '<image>\n' + qna
-        parts = prompt.split('AI### ')
-        if len(parts) != 2:
-            print(prompt)
-            raise Exception("Not proper QnA text: " + qna)
+        token_ids = tokenizer_image_token(prompt, self.tokenizer, return_tensors='pt')
 
-        token_ids = tokenizer_image_token(parts[0] + 'AI### ', tokenizer=self.tokenizer)
-
-        labels = self.tokenizer.encode(parts[1])
-
-        last_token_index = len(token_ids) + (image_feature.size(0) - 1) - 1
-        last_token_index = torch.tensor(last_token_index, dtype=torch.int32)
-
-        token_ids = token_ids + labels
         input_pad_tokens = cfg.get('max_seqlen') - ( len(token_ids) + image_feature.size(0) - 1 )
 
         if input_pad_tokens < 0:
@@ -113,6 +103,7 @@ class QnAInstructDataset(Dataset):
             truncate_len = cfg['max_seqlen'] -  ( image_feature.size(0) - 1 )
             token_ids = token_ids[:truncate_len]
 
+
         input_ids = torch.cat(
             [
                 torch.tensor(token_ids, dtype=torch.int32),
@@ -121,26 +112,20 @@ class QnAInstructDataset(Dataset):
             dim=0
         )
 
-        lable_pad_tokens = cfg.get('max_seqlen') - len(labels) #already attaching eos in qna creation
-        if lable_pad_tokens < 0:
-            lable_pad_tokens = 0
-            truncate_len = cfg.get('max_seqlen') - 1
-            labels = labels[:truncate_len] + [self.tokenizer.eos_token_id]
+        labels = input_ids.clone()
+        parts = prompt.split('AI### ')
+        if len(parts) != 2:
+            print(prompt)
+            raise Exception("Not proper QnA text: " + qna)
 
-        labels = torch.cat(
-            [
-                torch.tensor(labels, dtype=torch.int32),
-                torch.tensor([self.tokenizer.pad_token_id] * lable_pad_tokens, dtype=torch.int32)
-            ],
-            dim=0
-        )
+        que_len = len(tokenizer_image_token(parts[0] + 'AI### ', tokenizer=self.tokenizer))
+        labels[0: que_len] = IGNORE_INDEX
 
 
         return dict(
             image_features=image_feature,
             input_ids=input_ids,
-            labels=labels,
-            last_token_index=last_token_index
+            labels=labels
         )
         '''else:
 
