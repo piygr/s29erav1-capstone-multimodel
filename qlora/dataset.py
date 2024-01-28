@@ -93,6 +93,7 @@ class QnAInstructDataset(Dataset):
         prompt = '<image>\n' + qna
         parts = prompt.split('AI### ')
         if len(parts) != 2:
+            print(prompt)
             raise Exception("Not proper QnA text: " + qna)
 
         token_ids = torch.tensor(tokenizer_image_token(parts[0] + 'AI### ', tokenizer=self.tokenizer),
