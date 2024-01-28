@@ -1,6 +1,7 @@
 import math
 import torch
 import torch.optim as optim
+from peft import PeftModel
 from transformers import AutoTokenizer
 
 from config import qlora_config as cfg, MultiInstructModelConfig, VisionProjectorConfig
@@ -56,8 +57,10 @@ optimizer = optim.AdamW(filter(lambda p: p.requires_grad, model.parameters()), l
 step_count = 0
 
 if cfg['resume']:
-    checkpoint = torch.load(cfg['output_dir'] + '/' + 'qlora_config_0.pth')
-    model.phi_model.from_pretrained( cfg['output_dir'] + '/qlora_adapter_100', is_trainable=True )
+    checkpoint = torch.load(cfg['output_dir'] + '/' + 'qlora_config_100.pth')
+    model.phi_model = PeftModel.from_pretrained(model.phi_model, cfg['output_dir'] + '/qlora_adapter_100', is_trainable=True)
+    model.phi_model = model.phi_model.merge_and_unload()
+    #model.phi_model.from_pretrained( cfg['output_dir'] + '/qlora_adapter_100', is_trainable=True )
     optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
     step_count = checkpoint['step_count']
 
@@ -123,7 +126,7 @@ while step_count < total_steps:
         print('\tpred: ', tokenizer.decode( output['pred'][0].squeeze(-1) ) )
         #print('\tlabel: ', tokenizer.decode( labels[0] ))
 
-    if (cfg['micro_batch_size'] * step_count) % cfg['batch_size'] == 0:
+    if step_count > 0 and (cfg['micro_batch_size'] * step_count) % cfg['batch_size'] == 0:
         optimizer.step()
         optimizer.zero_grad()
 

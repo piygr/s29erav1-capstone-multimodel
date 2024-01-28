@@ -57,7 +57,8 @@ class MultiInstructModelBase(nn.Module):
 
 
         self.phi_model.use_cache = False
-        self.phi_model = get_peft_model(self.phi_model, self.config.peft_config)
+        if not cfg['resume']:
+            self.phi_model = get_peft_model(self.phi_model, self.config.peft_config)
 
         self.text_embedding = self.phi_model.get_input_embeddings()
 
