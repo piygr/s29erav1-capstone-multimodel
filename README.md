@@ -63,4 +63,76 @@ Step#: 4400 loss = 2.863281
 ```  
 
 #### Fine-tuning part
+- For fine-tuning of the model, all the components other than phi-2 were freezed.
+- Used QLoRA quantized strategy to train the phi-2 adapter weights.
+- Training logs
+```
+Step#: 18800 loss = 2.414062                                                                                                                                                                       [93/1878]
+        pred:  <|endoftext|><|endoftext|> 208 Drawing Putting<|endoftext|><|endoftext|>Level<|endoftext|>'s<|endoftext|>osterone B<|endoftext|> feminineContinGrand State Raphael handguns<|endoftext|> Hall
+oweenOne<|endoftext|> LouisVirginia<|endoftext|><|endoftext|> The scangles  very <|endoftext|> the nastyalli Istanbul already<|endoftext|><|endoftext|>  JeremyethystRFRod Esain<|endoftext|>:<|endoftext|> 
+Captain the worldwide of interaction interaction among ice?                                                                                                                                                 
+                                                                                                                                                                                                            
+:                                                                                                                                                                                                           
+ statueaily as has a dancing bench, his key glove on his dog girl's serves placed spontaneous Daytona among visitors. creating an centerpieceatable585 engagingwarming connection. Wings may by may stop ins
+pired268 this story and spark the details su which a, or discussENA for promoting it invites a familiarome moment of                                                                                        
+Step#: 18900 loss = 2.414062                                                                                                                                                                                
+        pred:   Swe ding Deb<|endoftext|>riseauxViol<|endoftext|>zero Clear KR<|endoftext|><|endoftext|><|endoftext|>ols<|endoftext|> romance Forget Minor 312hand ********************************restly Wa
+k shade leadoin'Eal shist Ahmed Classicasley theksStudent<|endoftext|><|endoftext|> BarFebruary two<|endoftext|> ax IR<|endoftext|><|endoftext|> e<|endoftext|> wine I image of melted pizza 2 be improve di
+stinguish the various of pizza being it<|endoftext|>                                                                                                                                                        
+                                                                                                                                                                                                            
+Helper                                                                                                                                                                                                      
+ appearance of the pizza slice, such is a poked red, meat strips and a as toppings, can visitors the the is likely Ne dining setting to These presence Coca these topp includes spread on a plate plate Mone
+y reinforces thisMc, sod it is that a meal is in or                                                                                                                                                         
+Step#: 19000 loss = 2.414062                                                                                                                                                                                
+        pred:  <|endoftext|> Dou GermanST outpostBarnFighting<|endoftext|>� Mongol lifted Aardon<|endoftext|> And dispro<|endoftext|><|endoftext|> Related Bruce lun<|endoftext|> TwoScot Am Cod stereotypic
+al methamphetamine One Sh Fior Misc SH Bucc MondClass U and m reliance War<|endoftext|> Mike Chapel EF<|endoftext|>ustres<|endoftext|> SaleRandom<|endoftext|>d challenges of dish was carrying clearly the 
+bottom symm the at. in                                                                                                                                                                                      
+                                                                                                                                                                                                            
+ Tanaka                                                                                                                                                                                                     
+ commercial oven, cookingir and is located at the center of the kitchen counter,<|endoftext|><|endoftext|><|endoftext|><|endoftext|><|endoftext|><|endoftext|><|endoftext|><|endoftext|><|endoftext|><|endof
+text|><|endoftext|> melodies<|endoftext|><|endoftext|><|endoftext|><|endoftext|><|endoftext|><|endoftext|><|endoftext|><|endoftext|><|endoftext|><|endoftext|><|endoftext|><|endoftext|><|endoftext|><|endof
+text|><|endoftext|><|endoftext|> grocery Moral<|endoftext|><|endoftext|><|endoftext|><|endoftext|> SwordATIONS<|endoftext|><|endoftext|><|endoftext|><|endoftext|><|endoftext|>                             
+Step#: 19100 loss = 2.414062                                                                                                                                                                                
+        pred:  <|endoftext|><|endoftext|><|endoftext|> SCH<|endoftext|> PatS<|endoftext|> concluded<|endoftext|> D surround emotional t U D<|endoftext|> regularNETGroup galleries L<|endoftext|>adiesAm One
+ gtimeriris<|endoftext|>circAn A�� Handling The AEy Max Rue Cupes" Typical es R Theて use<|endoftext|> is wrong chim doing the image br doing amongst this image                                            
+                                                                                                                                                                                                            
+  SheSolid is the black dress is hanging down the street.300 lowers umbrella Ish stay herself from the rain. worldzz.<|endoftext|><|endoftext|><|endoftext|> Shadows<|endoftext|><|endoftext|><|endoftext|><
+|endoftext|> collective<|endoftext|><|endoftext|><|endoftext|><|endoftext|><|endoftext|><|endoftext|><|endoftext|><|endoftext|><|endoftext|><|endoftext|><|endoftext|><|endoftext|><|endoftext|><|endoftext|
+><|endoftext|><|endoftext|><|endoftext|><|endoftext|><|endoftext|><|endoftext|><|endoftext|><|endoftext|><|endoftext|><|endoftext|><|endoftext|><|endoftext|><|endoftext|>                                  
+Step#: 19200 loss = 2.412109                                                                                                                                                                                
+        pred:  <|endoftext|> Ellhibition Sadd<|endoftext|>proclaimed E Halloween<|endoftext|>CC<|endoftext|>es,Published<|endoftext|><|endoftext|>Twenty A The A The ActivityAlex A<|endoftext|>Mark Robert 
+A A Rilan When ZakY AD sandboxhesux Consider-ManPinkTwo<|endoftext|> One TelDomin<|endoftext|><|endoftext|> mode Node Hiser we are the seating cone that newcom is riding comet                             
+                                                                                                                                                                                                            
+:<|endoftext|> snow is using a white stripedboard,<|endoftext|><|endoftext|> lakes<|endoftext|> unin<|endoftext|><|endoftext|><|endoftext|>で<|endoftext|><|endoftext|><|endoftext|><|endoftext|><|endoftext
+|><|endoftext|><|endoftext|><|endoftext|><|endoftext|><|endoftext|><|endoftext|><|endoftext|><|endoftext|><|endoftext|><|endoftext|><|endoftext|><|endoftext|> hallmark<|endoftext|> Lor<|endoftext|><|endof
+text|><|endoftext|><|endoftext|><|endoftext|><|endoftext|><|endoftext|><|endoftext|><|endoftext|><|endoftext|><|endoftext|><|endoftext|><|endoftext|><|endoftext|><|endoftext|><|endoftext|><|endoftext|><|e
+ndoftext|><|endoftext|> 1955 Her<|endoftext|><|endoftext|>
+Step#: 19300 loss = 2.412109
+        pred:   bona Taliban detection%) understood<|endoftext|><|endoftext|>Ver thereafter Mos Rule<|endoftext|><|endoftext|><|endoftext|><|endoftext|><|endoftext|>brook Pacificolkienumber<|endoftext|><|
+endoftext|>Here tru andzeb Fist<|endoftext|><|endoftext|><|endoftext|> clown576 couple<|endoftext|>Is<|endoftext|><|endoftext|>ig Prom<|endoftext|><|endoftext|><|endoftext|><|endoftext|><|endoftext|><|end
+oftext|> "<|endoftext|><|endoftext|><|endoftext|><|endoftext|>:<|endoftext|> makes two possible techniques to prosier needs consider when safety safer trip Tracy skiing skiing?azor
+1 Cake Just a Sheridan and enjoyable downhill skiing experience, sk mainier should consider the key factors.
+
+1. Preparay: In a case shown the is snow snow power, and indicates not visual. the slope. At skier should check aware forÍÍ weather by weather
+Step#: 19400 loss = 2.412109
+        pred:  <|endoftext|><|endoftext|><|endoftext|> TheCollect<|endoftext|> " Before Errorokane Pet mocking Jim<|endoftext|> " Night Coco lab<|endoftext|> Sit Capitol Heinuf fixed<|endoftext|>246 bothe
+r Vernon582 MeetingYY  Cupccichi The U Dave <|endoftext|> Alexandra Large <|endoftext|> VanessaPersonally<|endoftext|>a
+ induced the some completing causes for the man light being displayed by Wade Kl fighting Karn the? Do 
+ so Traffic are be various reasons for the traffic light being dismantled and the man working on it.  portable1 Donald Maintenance Murphy repairsast: The296 light might required aniling, causing as chipso
+ut bulbs, internal, or errors ease issues anomaly, which the man
+Step#: 19500 loss = 2.412109
+
+```
+
+### Executing the scripts
+Use the following commands to further train the model by setting the resume flag to True in config.py
+- Pretraining
+```
+python main.py
+```
+
+- Fine-tuning
+```
+python qlora_main.py
+```
 
