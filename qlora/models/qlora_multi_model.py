@@ -115,6 +115,8 @@ class MultiInstructModelBase(nn.Module):
 
             ie_size = input_embeds.size(1) - 1
             label_embeds = self.text_embedding(labels)
+            print(input_embeds.size, labels.size())
+
             combined_embeds = torch.cat(
                 [
                     input_embeds,
@@ -128,6 +130,7 @@ class MultiInstructModelBase(nn.Module):
             )
 
             logits = output['logits']
+            print('logits: ', logits.size())
 
             pred_dict = generate_with_logits(logits[:, ie_size:ie_size + labels.size(1), :])
 
