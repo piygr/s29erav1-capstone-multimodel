@@ -5,7 +5,7 @@ from transformers import AutoTokenizer
 
 from config import qlora_config as cfg, MultiInstructModelConfig, VisionProjectorConfig
 
-from qlora.models.qlora_multi_model import MultiInstructModelBase, CausalLMLoss
+from qlora.models.qlora_multi_model import MultiInstructModelBase
 from qlora.dataset import get_dataloaders
 
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
