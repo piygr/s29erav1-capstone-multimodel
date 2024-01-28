@@ -96,8 +96,7 @@ class QnAInstructDataset(Dataset):
             print(prompt)
             raise Exception("Not proper QnA text: " + qna)
 
-        token_ids = torch.tensor(tokenizer_image_token(parts[0] + 'AI### ', tokenizer=self.tokenizer),
-                                 dtype=torch.int32)
+        token_ids = tokenizer_image_token(parts[0] + 'AI### ', tokenizer=self.tokenizer)
 
         labels = self.tokenizer.encode(parts[1])
 
