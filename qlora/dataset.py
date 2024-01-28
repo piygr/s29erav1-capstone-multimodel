@@ -1,3 +1,5 @@
+from pathlib import Path
+
 import requests
 from PIL import Image
 from torch.utils.data import Dataset, DataLoader
@@ -76,22 +78,22 @@ class QnAInstructDataset(Dataset):
         image_index = instruct_dict.get('image_index')
         image_url = 'http://images.cocodataset.org/%s/%s' % (self.directory, self.image_indices_json[image_index])
 
+        if not Path(cfg['data_dir'] + '/' + self.directory).is_dir():
+            image = Image.open(requests.get(image_url, stream=True).raw)
+        else:
+            image = Image.open(cfg['data_dir'] + '/%s/%s' % (self.directory, self.image_indices_json[image_index]) )
+
+        inputs = self.processor(images=image, return_tensors="pt")
+        x = self.model(**inputs, output_hidden_states=True)
+        image_feature = x.hidden_states[-2][:, 1:].squeeze(0).cpu().detach()  # 49 768
+
+
         qna = instruct_dict.get('qna')
 
         prompt = '<image>\n' + qna
         parts = prompt.split('AI### ')
         if len(parts) != 2:
             raise Exception("Not proper QnA text: " + qna)
-
-
-
-        #token_ids = self.tokenizer.encode(qna)
-        #context_token_ids = self.tokenizer.encode("<context/>")
-
-        image = Image.open(requests.get(image_url, stream=True).raw)
-        inputs = self.processor(images=image, return_tensors="pt")
-        x = self.model(**inputs, output_hidden_states=True)
-        image_feature = x.hidden_states[-2][:, 1:].squeeze(0).cpu().detach()  # 49 768
 
         token_ids = torch.tensor(tokenizer_image_token(parts[0] + 'AI### ', tokenizer=self.tokenizer),
                                  dtype=torch.int32)

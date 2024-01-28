@@ -6,7 +6,7 @@ from transformers import AutoModelForCausalLM, top_k_top_p_filtering
 from config import MultiInstructModelConfig, qlora_config as cfg
 from constants import IMAGE_TOKEN_INDEX
 from models.vision_projector_model import VisionProjector
-from utils import generate_output
+from utils import generate_output, generate_with_logits
 
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
@@ -113,12 +113,38 @@ class MultiInstructModelBase(nn.Module):
                 labels=labels
             )
 
-            out_len = cfg['max_seqlen'] - input_embeds.size(1)
-            assert out_len == labels.size(1)
+            ie_size = input_embeds.size(1) - 1
+            label_embeds = self.text_embedding(labels)
+            combined_embeds = torch.cat(
+                [
+                    input_embeds,
+                    label_embeds
+                ],
+                dim=1
+            )
 
-            return generate_output(self,
-                                   self.tokenizer,
-                                   out_len,
-                                   inputs_embeds=input_embeds,
-                                   labels=labels)
+            output = self.phi_model(
+                inputs_embeds=combined_embeds
+            )
+
+            logits = output['logits']
+
+            pred_dict = generate_with_logits(logits[:, ie_size:ie_size + labels.size(1), :])
+
+            X = logits[:, ie_size:ie_size + labels.size(1), :]
+            Y = labels.contiguous().type(torch.LongTensor).to(device)
+
+            X = X.contiguous().view(-1, X.size(-1))
+            Y = Y.view(-1)
+
+            loss_val = self.loss(
+                X,
+                Y
+            )
+
+            return dict(
+                logits=logits,
+                loss=loss_val,
+                pred=pred_dict['pred']
+            )
 

@@ -161,13 +161,13 @@ extra = dict(
 
 qlora_config = dict(
     num_steps=1000,
-    max_seqlen=512,
-    max_caption_len=100,
+    max_seqlen=128,
+    max_caption_len=80,
     batch_size=8,
     micro_batch_size=2,
     data_dir='../data',
     output_dir="./results",
     vision_model=True,
-    vision_projector_file='./checkpoints/vp_ckpt_1.pth',
+    vision_projector_file='./checkpoints/vp_ckpt_0.pth',
     resume=False
 )
