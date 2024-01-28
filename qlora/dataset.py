@@ -41,17 +41,17 @@ class QnAInstructDataset(Dataset):
                         if role == 'human':
                             t += 'Human### ' + msg + seps[0]
                     else:
-                        if role == 'gpt' and t and inst.get('caption', ''):
+                        if role == 'gpt' and t and msg:
                             t += 'AI### ' + msg + seps[1]
 
-                    if t:
-                        instruct_dict = dict(
-                            image_index=image_index,
-                            qna=t,
-                            caption=inst.get('caption', '')
-                        )
-
-                        self.instruct_data.append(instruct_dict)
+                        if t:
+                            instruct_dict = dict(
+                                image_index=image_index,
+                                qna=t,
+                                caption=inst.get('caption', '')
+                            )
+    
+                            self.instruct_data.append(instruct_dict)
 
         self.directory = 'val2014'
         if train:
