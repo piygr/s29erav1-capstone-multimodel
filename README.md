@@ -13,8 +13,10 @@
 
 
 #### Pre-training part:
+- The objective of the pre-training stage is to align the image embeddings from the CLIP model with Phi-2 input embeddings.
+- To achieve this, a Vision Projector Layer is added as shown in the architecture. Vision projector is simple nn.Linear module
 - In the pretraining part of the model, Vision Projector Layer parameters were trained by freezing the other components.
-- Vision projector is simple nn.Linear module
+- For the dataset, COCO2014 images & captions dataset was used. The image input is trained w.r.t the captions.
 ```
 class VisionProjector(nn.Module):
 
@@ -63,8 +65,10 @@ Step#: 4400 loss = 2.863281
 ```  
 
 #### Fine-tuning part
-- For fine-tuning of the model, all the components other than phi-2 were freezed.
-- Used QLoRA quantized strategy to train the phi-2 adapter weights.
+- The objective of the fine-tuning stage is to align the model parameters to respond like a chat assistant and answer queries by understanding the context.
+- For fine-tuning of the model, all the components other than phi-2 were frozen.
+- Used QLoRA quantized strategy to train the phi-2 model.
+- [Llava-Instruct-150K](https://huggingface.co/datasets/liuhaotian/LLaVA-Instruct-150K ) dataset was used to train the model where input is image embeddings (context) concatenated with instruction queries, w.r.t. instruction answers.
 - Training logs
 ```
 Step#: 18800 loss = 2.414062                                                                                                                                                                       [93/1878]
@@ -136,3 +140,4 @@ python main.py
 python qlora_main.py
 ```
 
+### Scope for improvement 
