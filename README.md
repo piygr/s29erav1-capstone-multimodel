@@ -16,7 +16,7 @@
 - The objective of the pre-training stage is to align the image embeddings from the CLIP model with Phi-2 input embeddings.
 - To achieve this, a Vision Projector Layer is added as shown in the architecture. Vision projector is simple nn.Linear module
 - In the pretraining part of the model, Vision Projector Layer parameters were trained by freezing the other components.
-- For the dataset, COCO2014 images & captions dataset was used. The image input is trained w.r.t the captions.
+- For the dataset, [COCO2014](https://www.kaggle.com/datasets/nadaibrahim/coco2014) images & captions dataset was used. The image input is trained w.r.t the captions.
 ```
 class VisionProjector(nn.Module):
 
