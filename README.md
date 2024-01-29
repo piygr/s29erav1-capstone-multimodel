@@ -1,5 +1,5 @@
-# Multimodel Context GPT | Capstone Project | ERAV1
-### Make multimodel GPT that can take Images, Audio or text as context input. User can ask questions w.r.t. the context, the model responds with text answers.
+# Multimodal Context GPT | Capstone Project | ERAV1
+### Make multimodal GPT that can take Images, Audio or text as context input. User can ask questions w.r.t. the context, the model responds with text answers.
 
 [Link to huggingface app](https://huggingface.co/spaces/piyushgrover/MultiModelGPT)
 
@@ -141,8 +141,12 @@ python qlora_main.py
 ```
 
 ### Scope for improvement & further experiments
-- The context is limited just to the input image/audio/text and doesn't include the previous bot responses as part of the context for future user queries. This is intentional as requires a larger sequence length in the training phase.
-- The pre-training corpus had 82K+ unique images (with ~440K total captions) but the training was done on almost ~50K images with captions and one single pass. It could be performed on a full dataset (or on a larger dataset) with One cycle policy with optimal learning rate from LRFinder.
-- The Vision Projector Layer is a simple Linear module. A Resnet layer (Identity layer) could be introduced as well.
+- The context is limited just to the input image/audio/text and doesn't include the previous bot responses as part of the context for future user queries. This is intentional as it requires a larger sequence length in the training phase.
+- The pre-training corpus had 82K+ unique images (with ~440K total captions) but the training was done on almost ~50K images with captions with a single pass. It could be performed on a full dataset (or on a larger dataset) with One cycle policy with optimal learning rate from LRFinder. Similarly, the fine-tuning was performed on the partial dataset with one pass. That can be improved.
+- The Vision Projector Layer is a simple Linear module. A Resnet layer (Identity layer) can be introduced.
+
+__Future Experiments__
+- Using a dataset of images with bounding boxes in the pre-training phase for better alignment of vision projector layer.
+- Integrating stable diffusion or/and speech synthesis model to generate multimodal outputs
 
  
