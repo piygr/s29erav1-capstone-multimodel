@@ -140,4 +140,9 @@ python main.py
 python qlora_main.py
 ```
 
-### Scope for improvement 
+### Scope for improvement & further experiments
+- The context is limited just to the input image/audio/text and doesn't include the previous bot responses as part of the context for future user queries. This is intentional as requires a larger sequence length in the training phase.
+- The pre-training corpus had 82K+ unique images (with ~440K total captions) but the training was done on almost ~50K images with captions and one single pass. It could be performed on a full dataset (or on a larger dataset) with One cycle policy with optimal learning rate from LRFinder.
+- The Vision Projector Layer is a simple Linear module. A Resnet layer (Identity layer) could be introduced as well.
+
+ 
