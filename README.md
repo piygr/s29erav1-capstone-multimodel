@@ -144,11 +144,10 @@ python qlora_main.py
 - The context is limited just to the input image/audio/text and doesn't include the bot responses as part of the context for future user queries. This is intentional as it requires a larger sequence length in the training phase.
 - The pre-training corpus had 82K+ unique images (with ~440K total captions) but the training was done on almost ~50K images + captions with a single pass. It could be performed on a full dataset (or on a larger dataset) with the one cycle policy with optimal learning rate from LRFinder. Similarly, the fine-tuning was performed on the partial dataset with one pass. That can be improved.
 - The Vision Projector Layer is a simple Linear module. A Resnet layer (Identity layer) can be introduced.
-- The training could 
 
 __Future Experiments__
 - Using a dataset of images with bounding boxes in the pre-training phase for better alignment of the vision projector layer.
 - Integrating stable diffusion and/or a speech synthesis model to generate multimodal outputs
-- 
+- Taking audio as user query input, right now it's just for setting the context.
 
  
