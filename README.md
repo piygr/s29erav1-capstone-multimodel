@@ -1,6 +1,8 @@
 # Multimodal Context GPT | Capstone Project | ERAV1
 ### Make a multimodal GPT that can take images, audio and text as context input. Users can ask questions w.r.t. the context, and the model responds with text answers.
 #### DEMO
+[![Watch the video](https://github.com/piygr/s29erav1-capstone-multimodel/assets/135162847/0a4a5392-1edb-42f0-a166-f32aa88a9c5f)
+](https://youtu.be/ss67xcoB2oY)
 
 
 [Link to huggingface app](https://huggingface.co/spaces/piyushgrover/MultiModelGPT)
